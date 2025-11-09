@@ -1,0 +1,7 @@
+---
+description: Apply when doing code
+alwaysApply: false
+---
+- Ketika eksekusi code jika diperlukan perubahan .env maka informasikan ke user apa .env yang perlu diubah, atau kamu juga bisa cek .env saat ini dengan command `cat .env`
+- **Jangan pernah** untuk run `yarn dev` karena user pasti sudah run di terminal nya
+- Gunakan context7 ketika melakukan coding untuk update dokumentasi terbaru

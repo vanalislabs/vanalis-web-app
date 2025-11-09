@@ -1,0 +1,145 @@
+---
+description: Apply when code related with UI/UX design
+alwaysApply: false
+---
+# Design Guidelines - AI & Data Platform (Web3)
+
+## Design Approach
+**Reference-Based:** OpenSea-inspired marketplace with adaptations for AI dataset ecosystem. Modern Web3 marketplace aesthetic with clean, professional interface optimized for browsing collections, detailed item views, and transaction flows.
+
+## Core Design Principles
+1. **Marketplace Focus:** Card-based browsing with rich previews and metadata
+2. **Web3 Native:** Blockchain transaction states, wallet integration, on-chain verification indicators
+3. **Data-Centric:** Emphasize dataset quality, contributor reputation, and transparent royalty splits
+4. **Professional Trust:** Clean, credible design for enterprise AI/ML builders
+
+## Typography
+- **Primary Font:** Inter (Google Fonts) - clean, modern sans-serif
+- **Hierarchy:**
+  - H1: 2.5rem (40px), font-bold - Hero headlines, page titles
+  - H2: 2rem (32px), font-semibold - Section headers
+  - H3: 1.5rem (24px), font-semibold - Card titles, subsections
+  - Body: 1rem (16px), font-normal - Primary content
+  - Small: 0.875rem (14px), font-normal - Metadata, labels
+  - Tiny: 0.75rem (12px), font-medium - Badges, timestamps
+
+## Layout System
+- **Spacing Scale:** Tailwind units 2, 4, 6, 8, 12, 16, 24 (p-2, m-4, gap-6, py-8, etc.)
+- **Container:** max-w-7xl for main content
+- **Grid Systems:**
+  - Cards: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+  - Stats: grid-cols-2 lg:grid-cols-4
+  - Details: lg:grid-cols-3 (2/3 main content, 1/3 sidebar)
+
+## Navigation Structure
+
+### Sidebar Navigation (Persistent, Left-aligned)
+- Logo at top with deep purple accent
+- Main sections with icons:
+  - Discover (Home icon)
+  - Projects (Folder icon)
+  - Marketplace (Shopping bag icon)
+  - Activity (Clock icon)
+  - Leaderboards (Trophy icon)
+- Authenticated sections (below divider):
+  - Dashboard, Create Project, My Projects, My Submissions, My Datasets, Earnings
+- Footer: Network status indicator, Help link
+- Width: 240px desktop, collapsible on tablet/mobile to icon-only (64px) or drawer
+
+### Top Navbar
+- Search bar (center-aligned, expandable, with filters dropdown)
+- Right side: Activity bell icon (with badge), Connect Wallet button (deep purple, rounded-lg), Profile avatar dropdown
+- Sticky on scroll with subtle shadow
+
+## Component Library
+
+### Cards (Project/Dataset)
+- Rounded-xl borders with subtle shadow
+- Hover: lift effect (translate-y-1 + shadow-lg)
+- Structure:
+  - Image/Preview (aspect-video or aspect-square)
+  - Badge overlay (status: Open/Closed/Completed in top-left)
+  - Content padding: p-4
+  - Title (font-semibold, text-lg)
+  - Metadata row: icons + text (submissions count, reward amount, deadline)
+  - Footer: Creator avatar + name, Action button/link
+
+### Buttons
+- Primary: Deep purple (#6B46C1) background, white text, rounded-lg, px-6 py-3
+- Secondary: Purple-100 background, purple-700 text, rounded-lg
+- Ghost: Transparent with purple-700 text, border-2 border-purple-300
+- Icon buttons: Square, rounded-lg, hover:bg-purple-50
+- Over images: Backdrop blur (backdrop-blur-md), white/10 background, white text
+
+### Stats/Metrics
+- Large number (text-3xl font-bold) above small label (text-sm text-gray-500)
+- Group in grid with subtle borders or cards
+- Use icons for context (trending up/down, user icons, currency)
+
+### Badges
+- Rounded-full px-3 py-1 with colored backgrounds:
+  - Open: green-100 background, green-700 text
+  - Closed: gray-100 background, gray-700 text
+  - Verified: purple-100 background, purple-700 text
+- Font-medium text-xs
+
+### Forms
+- Input fields: border-gray-300, rounded-lg, px-4 py-3, focus:ring-2 focus:ring-purple-500
+- Labels: font-medium text-sm mb-2
+- File uploads: Dashed border drag-drop areas with icon and helper text
+- Form sections: Space with mb-8, use dividers (border-t pt-8)
+
+### Modals/Overlays
+- Backdrop: bg-black/50 backdrop-blur-sm
+- Content: bg-white rounded-2xl shadow-2xl max-w-2xl p-8
+- Close button: top-right, rounded-full hover:bg-gray-100
+
+### Data Tables
+- Header: bg-gray-50, font-semibold, text-sm
+- Rows: border-b hover:bg-gray-50
+- Cells: px-6 py-4
+- Actions column: Icon buttons aligned right
+
+## Page-Specific Layouts
+
+### Home/Discover
+- Hero: Large search bar, headline, CTA (Create Project + Browse Marketplace buttons)
+- Featured Projects: Horizontal scrollable cards (4-5 visible)
+- Featured Datasets: Grid layout (4 columns)
+- Leaderboards: Two columns (Contributors left, Curators right)
+- Stats banner: 4-column metrics
+- Activity feed: Single column, max-w-3xl centered
+
+### Projects Browse & Marketplace
+- Filters sidebar (left, collapsible): Categories, price range, status, sort options
+- Results area: Grid with view toggle (grid/list) in top-right
+- Pagination at bottom
+
+### Detail Pages (Project/Dataset)
+- Three-column layout:
+  - Left (2/3): Image gallery, description, stats, activity
+  - Right (1/3 sticky): Purchase/Submit card, metadata, creator info
+- Tabs for additional sections: About, Contributors, Activity, Related
+
+### Dashboard
+- Widget grid: 4-column on desktop, stack on mobile
+- Quick actions: Large icon buttons in 2x2 or 3-column grid
+- Recent activity list below
+
+## Images
+- **Logo:** Use logo.png (deep purple V with network graphic) in sidebar top and footer
+- **Hero Section (Home):** Abstract data visualization or network nodes graphic (purple/blue gradient), full-width, height: 60vh
+- **Project/Dataset Cards:** Thumbnail images (640x480 placeholder) showing data samples or project icons
+- **Profile Avatars:** Circular, 40x40px in cards, 80x80px in profiles
+- **Empty States:** Illustration of data collection/AI training process with purple accents
+
+## Color Palette
+Primary: Deep Purple (#6B46C1 / purple-600) from logo
+Supporting: purple-50 through purple-900 scale
+Neutrals: gray-50 through gray-900
+Success: green-500, Warning: yellow-500, Error: red-500
+
+## Responsive Behavior
+- Mobile (<768px): Sidebar collapses to drawer, cards single column, simplified stats
+- Tablet (768-1024px): Sidebar icon-only, cards 2-column, condensed navigation
+- Desktop (>1024px): Full sidebar, multi-column grids, expanded metadata
