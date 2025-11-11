@@ -159,3 +159,10 @@ Satu user dapat melakukan semua peran (tidak eksklusif).
 - **UI Reference:** Terinspirasi dari OpenSea.io dengan sidebar navigation dan modern marketplace UI
 - **Theme:** Support dark/light mode dengan next-themes
 
+### Bahasa & Lokalisasi:
+
+- **Bahasa Aplikasi:** Bahasa Inggris (English)
+  - Semua teks UI, label, pesan, dan konten dalam aplikasi menggunakan bahasa Inggris
+  - Dokumentasi kode dan komentar menggunakan bahasa Inggris
+  - Nama variabel, fungsi, dan komponen menggunakan bahasa Inggris
+
