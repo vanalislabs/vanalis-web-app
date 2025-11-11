@@ -3,7 +3,13 @@ node_modules
 dist
 
 # Environment variables
-.env
+.env*
+!.env.example
 
 # Idk what this is
 nul
+
+# Package lock except yarn.lock
+bun.lockb
+package-lock.json
+pnpm-lock.yaml
