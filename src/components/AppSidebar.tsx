@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import logoImage from "@assets/logo.png";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const publicItems = [
   { title: "Discover", url: "/", icon: Home },
@@ -34,7 +35,7 @@ const authenticatedItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const isAuthenticated = true; //todo: remove mock functionality
+  const account = useCurrentAccount();
 
   return (
     <Sidebar>
@@ -69,7 +70,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isAuthenticated && (
+        {account && (
           <SidebarGroup>
             <SidebarGroupLabel>My Account</SidebarGroupLabel>
             <SidebarGroupContent>

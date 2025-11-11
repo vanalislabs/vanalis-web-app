@@ -24,25 +24,26 @@ import NotFound from "./pages/not-found";
 function Router() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route element={<AppLayout authenticated={false} />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/projects/create" element={<CreateProjectPage />} />
-        <Route path="/projects/:id/submit" element={<SubmitDataPage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/marketplace/:id" element={<DatasetDetailPage />} />
         <Route path="/datasets/:id" element={<DatasetDetailPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/leaderboards" element={<LeaderboardsPage />} />
+      </Route>
+      <Route element={<AppLayout authenticated={true} />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/projects/create" element={<CreateProjectPage />} />
+        <Route path="/projects/:id/submit" element={<SubmitDataPage />} />
         <Route path="/my-projects" element={<MyProjectsPage />} />
         <Route path="/my-submissions" element={<MySubmissionsPage />} />
         <Route path="/my-datasets" element={<MyDatasetsPage />} />
         <Route path="/earnings" element={<EarningsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile/:address" element={<ProfilePage />} />
-      </Route>
+        <Route path="/profile/:address" element={<ProfilePage />} /></Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

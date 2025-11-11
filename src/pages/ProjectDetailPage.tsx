@@ -15,7 +15,8 @@ export default function ProjectDetailPage() {
   const { id } = useParams();
   const projectId = id;
 
-  //todo: remove mock functionality
+  const isProjectOwner = true;
+
   const project = {
     id: projectId,
     title: "Medical Image Dataset Collection",
@@ -136,7 +137,7 @@ export default function ProjectDetailPage() {
               <CardHeader>
                 <CardTitle>Project Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="flex flex-col gap-6">
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm text-muted-foreground">Progress</span>
@@ -149,7 +150,7 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <DollarSign className="h-5 w-5 text-primary" />
