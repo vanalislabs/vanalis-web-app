@@ -1,21 +1,153 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { Calendar, Users, DollarSign, Upload, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { Calendar, DollarSign, Upload, CheckCircle, Clock, TrendingUp, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LeaderboardItem } from "@/components/LeaderboardItem";
 import { ActivityFeedItem } from "@/components/ActivityFeedItem";
+import { SubmissionCard, Submission } from "@/components/SubmissionCard";
+import { SubmissionDetailDialog } from "@/components/SubmissionDetailDialog";
+import { formatRelativeTime } from "@/utils/dateUtils";
 import projectImage from "@assets/dummy/Team_data_collection_illustration_dd59af91.png";
 import avatarImage from "@assets/dummy/Tech_professional_avatar_headshot_e62e7352.png";
+import previewImage from "@assets/dummy/AI_dataset_visualization_thumbnail_8ab46a36.png";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const projectId = id;
 
   const isProjectOwner = true;
+
+  // State for submissions
+  const [submissions, setSubmissions] = useState<Submission[]>([
+    {
+      id: "sub-1",
+      projectId: projectId || "",
+      contributorName: "alice.sui",
+      contributorAddress: "0x1234...5678",
+      contributorAvatar: avatarImage,
+      title: "Chest X-ray Dataset - Anterior View",
+      description: "High-quality chest X-ray images with proper annotations. Includes 50 images covering various conditions.",
+      tags: ["X-ray", "Chest", "Medical"],
+      status: "pending",
+      previewDatasetUrl: previewImage,
+      previewDatasetSize: "2.5 MB",
+      submittedAt: "2 hours ago",
+      reward: "5 SUI",
+    },
+    {
+      id: "sub-2",
+      projectId: projectId || "",
+      contributorName: "bob.sui",
+      contributorAddress: "0x2345...6789",
+      contributorAvatar: avatarImage,
+      title: "Lung CT Scan Collection",
+      description: "Comprehensive lung CT scan dataset with detailed annotations. All images are anonymized and comply with privacy regulations.",
+      tags: ["CT Scan", "Lung", "Medical"],
+      status: "approved",
+      previewDatasetUrl: previewImage,
+      fullDatasetUrl: "https://example.com/datasets/full-dataset-2.zip",
+      previewDatasetSize: "3.1 MB",
+      fullDatasetSize: "125 MB",
+      submittedAt: "5 hours ago",
+      reviewedAt: "3 hours ago",
+      reward: "5 SUI",
+    },
+    {
+      id: "sub-3",
+      projectId: projectId || "",
+      contributorName: "carol.sui",
+      contributorAddress: "0x3456...7890",
+      contributorAvatar: avatarImage,
+      title: "MRI Brain Images",
+      description: "MRI brain images dataset. However, some images lack proper labeling.",
+      tags: ["MRI", "Brain"],
+      status: "rejected",
+      previewDatasetUrl: previewImage,
+      previewDatasetSize: "1.8 MB",
+      submittedAt: "1 day ago",
+      reviewedAt: "12 hours ago",
+      rejectedReason: "Images lack proper anatomical region labeling as required by project guidelines.",
+      reward: "5 SUI",
+    },
+    {
+      id: "sub-4",
+      projectId: projectId || "",
+      contributorName: "dave.sui",
+      contributorAddress: "0x4567...8901",
+      contributorAvatar: avatarImage,
+      title: "Abdominal Ultrasound Dataset",
+      description: "High-resolution abdominal ultrasound images with comprehensive annotations.",
+      tags: ["Ultrasound", "Abdomen"],
+      status: "pending",
+      previewDatasetUrl: previewImage,
+      previewDatasetSize: "2.2 MB",
+      submittedAt: "3 hours ago",
+      reward: "5 SUI",
+    },
+  ]);
+
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+
+  // Filter submissions based on status
+  const filteredSubmissions = submissions.filter((sub) => {
+    if (statusFilter === "all") return true;
+    return sub.status === statusFilter;
+  });
+
+  // Calculate submission counts
+  const submissionCounts = {
+    pending: submissions.filter((s) => s.status === "pending").length,
+    approved: submissions.filter((s) => s.status === "approved").length,
+    rejected: submissions.filter((s) => s.status === "rejected").length,
+    total: submissions.length,
+  };
+
+  // Handlers
+  const handleViewDetails = (submission: Submission) => {
+    setSelectedSubmission(submission);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleApproveSubmission = (submission: Submission) => {
+    const now = new Date();
+    setSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === submission.id
+          ? {
+            ...sub,
+            status: "approved" as const,
+            fullDatasetUrl: `https://example.com/datasets/full-dataset-${sub.id}.zip`,
+            fullDatasetSize: "125 MB",
+            reviewedAt: formatRelativeTime(now.toISOString()),
+          }
+          : sub
+      )
+    );
+  };
+
+  const handleRejectSubmission = (submission: Submission, reason: string) => {
+    const now = new Date();
+    setSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === submission.id
+          ? {
+            ...sub,
+            status: "rejected" as const,
+            rejectedReason: reason,
+            reviewedAt: formatRelativeTime(now.toISOString()),
+          }
+          : sub
+      )
+    );
+  };
 
   const project = {
     id: projectId,
@@ -86,6 +218,11 @@ export default function ProjectDetailPage() {
                   <TabsTrigger value="about" data-testid="tab-about">About</TabsTrigger>
                   <TabsTrigger value="requirements" data-testid="tab-requirements">Requirements</TabsTrigger>
                   <TabsTrigger value="activity" data-testid="tab-activity">Activity</TabsTrigger>
+                  {isProjectOwner && (
+                    <TabsTrigger value="submissions" data-testid="tab-submissions">
+                      Submissions ({submissionCounts.total})
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="about" className="mt-6">
@@ -115,6 +252,54 @@ export default function ProjectDetailPage() {
                     <ActivityFeedItem type="reward" user="carol.sui" action="earned reward from" target={project.title} timestamp="8 hours ago" amount="5 SUI" />
                   </div>
                 </TabsContent>
+
+                {isProjectOwner && (
+                  <TabsContent value="submissions" className="mt-6">
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <h3 className="text-lg font-semibold">Submissions Review</h3>
+                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}>
+                          <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Submissions</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {filteredSubmissions.length === 0 ? (
+                        <Card>
+                          <CardContent className="py-12 text-center">
+                            <p className="text-muted-foreground">No submissions found for the selected filter.</p>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                          {filteredSubmissions.map((submission) => (
+                            <SubmissionCard
+                              key={submission.id}
+                              submission={submission}
+                              onViewDetails={handleViewDetails}
+                              onApprove={submission.status === "pending" ? handleApproveSubmission : undefined}
+                              onReject={
+                                submission.status === "pending"
+                                  ? (sub) => {
+                                    // Open detail dialog for reject (reason will be entered in dialog)
+                                    handleViewDetails(sub);
+                                  }
+                                  : undefined
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
 
@@ -190,6 +375,37 @@ export default function ProjectDetailPage() {
                       <div className="font-semibold">{project.verified} items</div>
                     </div>
                   </div>
+
+                  {isProjectOwner && (
+                    <>
+                      <div className="pt-3 border-t border-border">
+                        <div className="text-xs font-semibold text-muted-foreground mb-2">Submissions</div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                              <span className="text-xs text-muted-foreground">Pending</span>
+                            </div>
+                            <span className="font-semibold">{submissionCounts.pending}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <span className="text-xs text-muted-foreground">Approved</span>
+                            </div>
+                            <span className="font-semibold">{submissionCounts.approved}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              <span className="text-xs text-muted-foreground">Rejected</span>
+                            </div>
+                            <span className="font-semibold">{submissionCounts.rejected}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {project.status === "open" && (
@@ -227,6 +443,14 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      <SubmissionDetailDialog
+        submission={selectedSubmission}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+        onApprove={handleApproveSubmission}
+        onReject={handleRejectSubmission}
+      />
     </div>
   );
 }

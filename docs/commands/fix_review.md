@@ -12,14 +12,13 @@ Langkah-langkah perbaikan:
 Selama proses perbaikan, buat dokumen log perbaikan di docs/fixes/FIXES_XXXXXX.md dimana XXXXXX adalah nomor yang sama dengan REVIEW_XXXXXX.md yang sedang diperbaiki (format: FIXES_XXXXXX.md dimana XXXXXX adalah angka 6 digit dengan leading zeros).
 
 Format dokumen FIXES_XXXXXX.md:
-- Mulai dengan header yang menyertakan nomor review dan timestamp awal perbaikan
+- Mulai dengan header yang menyertakan nomor plan perbaikan
 - Untuk setiap perbaikan, tuliskan:
-  * Timestamp (format: YYYY-MM-DD HH:MM:SS)
   * Masalah yang diperbaiki (referensi dari REVIEW_XXXXXX.md)
   * File yang dimodifikasi
   * Deskripsi perbaikan yang dilakukan
   * Verifikasi bahwa perbaikan berhasil
-- Akhiri dengan timestamp selesai perbaikan dan ringkasan keseluruhan
+- Akhiri dengan tanda selesai perbaikan dan ringkasan keseluruhan
 
 Pastikan dokumen FIXES_XXXXXX.md berfungsi sebagai log lengkap dari proses perbaikan dengan timestamp untuk setiap langkah penting.
 
