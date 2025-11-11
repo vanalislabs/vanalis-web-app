@@ -1,0 +1,26 @@
+/* Custom Connect Wallet Button */
+[data-dapp-kit] {
+  --dapp-kit-backgroundColors-primaryButton: hsl(var(--primary)) !important;
+  --dapp-kit-backgroundColors-primaryButtonHover: hsl(from hsl(var(--primary)) h s calc(l - 2) / alpha) !important;
+  --dapp-kit-colors-primaryButton: white !important;
+  --dapp-kit-colors-outlineButton: white !important;
+}
+
+button[data-dapp-kit] {
+  padding: 8px 16px !important;
+}
+
+button[data-dapp-kit]>div:nth-child(1),
+button[data-dapp-kit]>svg:nth-child(1) {
+  color: white !important;
+}
+
+button[data-dapp-kit]>div:nth-child(1) {
+  font-size: 16px !important;
+  font-weight: normal !important;
+}
+
+[data-dapp-kit].AccountDropdownMenu_menuContent__div2ql2>div[role="menuitem"]:hover {
+  background-color: #DFDFDF;
+  cursor: pointer;
+}

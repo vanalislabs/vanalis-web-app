@@ -56,7 +56,7 @@ export default function MyDatasetsPage() {
         {datasets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {datasets.map((dataset) => (
-              <Card key={dataset.id} data-testid={`card-dataset-${dataset.id}`}>
+              <Card key={dataset.id} data-testid={`card-dataset-${dataset.id}`} className="flex flex-col">
                 <div className="relative aspect-video overflow-hidden">
                   <img src={dataset.image} alt={dataset.name} className="w-full h-full object-cover" />
                   <Badge className="absolute top-3 left-3" variant="secondary">
@@ -64,7 +64,7 @@ export default function MyDatasetsPage() {
                   </Badge>
                 </div>
 
-                <CardHeader className="pb-3">
+                <CardHeader className="flex-1 pb-3">
                   <h3 className="font-semibold text-lg line-clamp-2">{dataset.name}</h3>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
                     <span>{dataset.itemsCount.toLocaleString()} items</span>
@@ -73,7 +73,7 @@ export default function MyDatasetsPage() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
+                <CardContent className="flex flex-col gap-3">
                   {dataset.sourceProjectName && (
                     <Link to={`/projects/${dataset.sourceProjectId}`}>
                       <div className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex items-center gap-1">
