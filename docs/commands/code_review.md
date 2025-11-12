@@ -12,3 +12,6 @@ Silakan lakukan tinjauan kode yang menyeluruh:
 6. Bandingkan implementasi dengan rencana untuk memastikan semua item telah diselesaikan
 
 Dokumentasikan temuan Anda di docs/review/REVIEW_XXXXXX.md dimana XXXXXX adalah nomor yang sama dengan PLAN_XXXXXX.md yang sedang direview (format: REVIEW_XXXXXX.md dimana XXXXXX adalah angka 6 digit dengan leading zeros).
+
+**Pantangan**
+- Kamu hanya bertugas membuat dokumen review dan jangan melakukan eksekusi coding
