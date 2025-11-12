@@ -58,3 +58,6 @@ Setiap item checklist harus:
 
 **Konteks yang bisa ditambahkan**
 - Kalau memang butuh konteks style design UI/UX frontend nya bisa tambahkan DESIGN_SYSTEM.json di konteks nya (docs/DESIGN_SYSTEM.json)
+
+**Pantangan**
+- Kamu hanya bertugas membuat dokumen plan dan jangan melakukan eksekusi coding

@@ -1,7 +1,6 @@
 import { useParams } from "react-router";
 import { TrendingUp, Award, Database, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/StatsCard";
@@ -22,7 +21,6 @@ export default function ProfilePage() {
     avatar: avatarImage,
     bio: "AI/ML enthusiast and data contributor. Passionate about healthcare AI and medical imaging datasets.",
     joinedDate: "3 months ago",
-    roles: ["Contributor", "Curator"],
     stats: {
       contributions: 1245,
       projectsCreated: 3,
@@ -71,9 +69,6 @@ export default function ProfilePage() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold">{profile.username}</h1>
-                  {profile.roles.map((role) => (
-                    <Badge key={role} variant="secondary">{role}</Badge>
-                  ))}
                 </div>
                 <p className="text-muted-foreground mb-2">{profile.address}</p>
                 <p className="text-foreground mb-4">{profile.bio}</p>

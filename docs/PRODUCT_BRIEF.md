@@ -109,9 +109,10 @@ Satu user dapat melakukan semua peran (tidak eksklusif).
 
 - **Projects:** Crowdsourcing phase untuk mengumpulkan data dengan sistem reward
 - **Marketplace:** Marketplace phase untuk menjual dataset final yang sudah dikurasi
+- **Search:** Global search functionality untuk mencari projects, datasets, dan users dengan real-time dropdown results (terinspirasi OpenSea)
 - **Activity Feed:** Real-time activity tracking untuk semua transaksi dan kontribusi
 - **Leaderboards:** Ranking untuk Contributors, Curators, dan Trainers
-- **Profile System:** Public profile dengan stats, earnings, dan history
+- **Profile System:** Public profile dengan stats, earnings, dan history (user dapat melihat profil user lain)
 - **Dashboard:** Personal dashboard untuk manage projects, submissions, dan earnings
 
 ## Teknologi / Arsitektur Tinggi
