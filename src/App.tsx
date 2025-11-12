@@ -33,6 +33,7 @@ function Router() {
         <Route path="/datasets/:id" element={<DatasetDetailPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/leaderboards" element={<LeaderboardsPage />} />
+        <Route path="/profile/:address" element={<ProfilePage />} />
       </Route>
       <Route element={<AppLayout authenticated={true} />}>
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -43,7 +44,7 @@ function Router() {
         <Route path="/my-datasets" element={<MyDatasetsPage />} />
         <Route path="/earnings" element={<EarningsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile/:address" element={<ProfilePage />} /></Route>
+      </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
