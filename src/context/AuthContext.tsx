@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   }, [userProfile, setUser]);
 
   useEffect(() => {
-    if (currentAccount && !user?.address) {
+    if (currentAccount && (!user?.address || (user?.address != currentAccount?.address))) {
       doLogin();
     }
   }, [currentAccount?.address, user?.address]);
