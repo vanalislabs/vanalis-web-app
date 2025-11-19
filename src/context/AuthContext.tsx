@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   }, [userProfile, setUser]);
 
   useEffect(() => {
-    if (currentAccount && !user?.address) {
+    if (currentAccount && (!user?.address || (user?.address != currentAccount?.address))) {
       doLogin();
     }
   }, [currentAccount?.address, user?.address]);
@@ -116,6 +116,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           setRefreshToken(response.data.refreshToken);
           // Invalidate and refetch user profile after successful login
           queryClient.invalidateQueries({ queryKey: ["authUser"] });
+          refetchAuthUser();
         }
       } catch (error) {
         console.error(error);
