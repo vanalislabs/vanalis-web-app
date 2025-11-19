@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import logoImage from "@assets/logo.png";
 import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useAuth } from "@/context/AuthContext";
 
 const publicItems = [
   { title: "Discover", url: "/", icon: Home },
@@ -35,7 +36,7 @@ const authenticatedItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const account = useCurrentAccount();
+  const { isLoggedIn } = useAuth();
 
   return (
     <Sidebar>
@@ -70,7 +71,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {account && (
+        {isLoggedIn && (
           <SidebarGroup>
             <SidebarGroupLabel>My Account</SidebarGroupLabel>
             <SidebarGroupContent>
