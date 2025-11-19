@@ -116,6 +116,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           setRefreshToken(response.data.refreshToken);
           // Invalidate and refetch user profile after successful login
           queryClient.invalidateQueries({ queryKey: ["authUser"] });
+          refetchAuthUser();
         }
       } catch (error) {
         console.error(error);
