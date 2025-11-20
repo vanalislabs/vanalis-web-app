@@ -4,16 +4,52 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ConnectButton } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
 import { SearchModal } from "@/components/SearchModal";
+import { SignJWT } from "jose";
 
 export function Navbar() {
   const notificationCount = 3; //todo: remove mock functionality
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const currentAccount = useCurrentAccount();
+  const { mutate: signPersonalMessage } = useSignPersonalMessage();
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
   };
+
+  // const handleSignMessage = async () => {
+  //   if (!currentAccount) return;
+  //   const message = new TextEncoder().encode('Sign this message to sign in');
+  //   const result = await new Promise<{ signature?: string, bytes?: string }>((resolve) => {
+  //     signPersonalMessage({
+  //       message,
+  //     }, {
+  //       onSuccess: (signature) => {
+  //         resolve(signature);
+  //       },
+  //       onError: (error) => {
+  //         console.error(error);
+  //       },
+  //     });
+  //   });
+  //   if (result?.signature) {
+  //     const signature = result.signature;
+
+  //     const payload = {
+  //       address: currentAccount.address,
+  //       signature,
+  //     }
+
+  //     const jwt = await new SignJWT(payload)
+  //       .setProtectedHeader({ alg: "HS256" })
+  //       .setIssuedAt()
+  //       .setExpirationTime("1h")
+  //       .sign(new TextEncoder().encode(import.meta.env.VITE_JWT_SECRET));
+
+  //     console.log('jwt', jwt);
+  //   }
+  // };
 
   return (
     <header className="sticky top-0 z-[50] flex items-center justify-between gap-4 border-b border-border bg-background/70 backdrop-blur-sm px-4 py-3 pointer-events-auto relative">
@@ -48,6 +84,11 @@ export function Navbar() {
           )}
         </Button>
 
+        {/* {currentAccount && (
+          <Button variant="ghost" className="px-2 flex justify-center items-center" onClick={handleSignMessage}>
+            Sign Message
+          </Button>
+        )} */}
         <ConnectButton />
       </div>
     </header>
