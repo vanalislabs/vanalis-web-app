@@ -6,8 +6,32 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import projectImage from "@assets/dummy/Team_data_collection_illustration_dd59af91.png";
+import { useNetworkVariable } from "@/networkConfig";
+import { useEffect, useState } from "react";
+import { useSuiClient } from "@mysten/dapp-kit";
+import { PaginatedEvents } from "@mysten/sui/client";
+import type { ProjectEvent } from "@/types/project";
 
 export default function MyProjectsPage() {
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
+  const EVENT_TYPE = `${vanalisPackageId}::project::ProjectCreatedEvent`;
+  const suiClient = useSuiClient();
+  const [data, setData] = useState<PaginatedEvents | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const eventsRes = await suiClient.queryEvents({
+        query: {
+          MoveEventType: EVENT_TYPE,
+        },
+      });
+      if(eventsRes) setData(eventsRes);
+      // console.log(eventsRes);
+    };
+    fetchEvents();
+  }, [])
+  console.log(data);
+
   //todo: remove mock functionality
   const projects = [
     {
