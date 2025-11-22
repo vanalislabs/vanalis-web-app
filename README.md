@@ -10,20 +10,25 @@ Client dApp using the following tools:
 - [ESLint](https://eslint.org/)
 - [`@mysten/dapp-kit`](https://sdk.mystenlabs.com/dapp-kit) for connecting to
   wallets and loading data
-- [pnpm](https://pnpm.io/) for package management
+- [yarn](https://yarnpkg.com/) for package management
 
 ## Starting your dApp
+
+Copy .env.example to .env (fill the environment, make sure jwt secret same with backend jwt secret)
+```bash
+cp .env.example .env
+```
 
 To install dependencies you can run
 
 ```bash
-pnpm install
+yarn install
 ```
 
 To start your dApp in development mode run
 
 ```bash
-pnpm dev
+yarn dev
 ```
 
 ## Building
@@ -31,5 +36,5 @@ pnpm dev
 To build your app for deployment you can run
 
 ```bash
-pnpm build
+yarn build
 ```
