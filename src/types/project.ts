@@ -1,3 +1,5 @@
+import { Submission } from "./submission";
+
 export type ProjectEvent = {
   id: string;
   curator: string;
@@ -12,6 +14,7 @@ export type ProjectEvent = {
   createdAt: number;
   deadline: number;
   status: "OPEN" | "COMPLETED" | "closing-soon";
+  submissions: Submission[];
 
   submissionsCount: number;
   approvedCount: number;

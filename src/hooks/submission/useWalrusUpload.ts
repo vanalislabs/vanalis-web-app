@@ -25,6 +25,9 @@ export function useWalrusUpload() {
           WalrusFile.from({
             contents: uint8Arr,
             identifier: file.name,
+            tags: {
+              "content-type": file.type,
+            }
           }),
         ],
       });
@@ -52,11 +55,12 @@ export function useWalrusUpload() {
 
       // Step 5: Get Blob ID
       const files = await flow.listFiles();
+      console.log(files);
       
       if (!files[0] || !files[0].blobId) {
         throw new Error("Upload succeeded but no Blob ID was returned");
       }
-
+      // console.log("Returned blobId:", files[0].blobId);
       return files[0].blobId;
 
     } catch (error) {

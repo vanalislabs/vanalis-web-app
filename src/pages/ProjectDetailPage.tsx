@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
   Calendar,
@@ -24,11 +24,10 @@ import {
 } from "@/components/ui/select";
 import { LeaderboardItem } from "@/components/LeaderboardItem";
 import { ActivityFeedItem } from "@/components/ActivityFeedItem";
-import { SubmissionCard, Submission } from "@/components/SubmissionCard";
+import { SubmissionCard } from "@/components/SubmissionCard";
+import { Submission } from "@/types/submission";
 import { SubmissionDetailDialog } from "@/components/SubmissionDetailDialog";
-import { formatRelativeTime } from "@/utils/dateUtils";
 import avatarImage from "@assets/dummy/Tech_professional_avatar_headshot_e62e7352.png";
-import previewImage from "@assets/dummy/AI_dataset_visualization_thumbnail_8ab46a36.png";
 import { useGetProjectById } from "@/hooks/project/useGetProjectById";
 import Loading from "@/loading";
 import { projectStatus } from "@/constants/projectStatus";
@@ -44,7 +43,9 @@ export default function ProjectDetailPage() {
 
   const { data, isLoading, error } = useGetProjectById(projectId);
 
-    const [selectedSubmission, setSelectedSubmission] =
+  const project = (data?.data as ProjectEvent) ?? undefined;
+
+  const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
@@ -52,92 +53,39 @@ export default function ProjectDetailPage() {
   >("all");
 
   // State for submissions
-  const [submissions, setSubmissions] = useState<Submission[]>([
-    {
-      id: "sub-1",
-      projectId: projectId || "",
-      contributorName: "alice.sui",
-      contributorAddress: "0x1234...5678",
-      contributorAvatar: avatarImage,
-      title: "Chest X-ray Dataset - Anterior View",
-      description:
-        "High-quality chest X-ray images with proper annotations. Includes 50 images covering various conditions.",
-      tags: ["X-ray", "Chest", "Medical"],
-      status: "pending",
-      previewDatasetUrl: previewImage,
-      previewDatasetSize: "2.5 MB",
-      submittedAt: "2 hours ago",
-      reward: "5 SUI",
-    },
-    {
-      id: "sub-2",
-      projectId: projectId || "",
-      contributorName: "bob.sui",
-      contributorAddress: "0x2345...6789",
-      contributorAvatar: avatarImage,
-      title: "Lung CT Scan Collection",
-      description:
-        "Comprehensive lung CT scan dataset with detailed annotations. All images are anonymized and comply with privacy regulations.",
-      tags: ["CT Scan", "Lung", "Medical"],
-      status: "approved",
-      previewDatasetUrl: previewImage,
-      fullDatasetUrl: "https://example.com/datasets/full-dataset-2.zip",
-      previewDatasetSize: "3.1 MB",
-      fullDatasetSize: "125 MB",
-      submittedAt: "5 hours ago",
-      reviewedAt: "3 hours ago",
-      reward: "5 SUI",
-    },
-    {
-      id: "sub-3",
-      projectId: projectId || "",
-      contributorName: "carol.sui",
-      contributorAddress: "0x3456...7890",
-      contributorAvatar: avatarImage,
-      title: "MRI Brain Images",
-      description:
-        "MRI brain images dataset. However, some images lack proper labeling.",
-      tags: ["MRI", "Brain"],
-      status: "rejected",
-      previewDatasetUrl: previewImage,
-      previewDatasetSize: "1.8 MB",
-      submittedAt: "1 day ago",
-      reviewedAt: "12 hours ago",
-      rejectedReason:
-        "Images lack proper anatomical region labeling as required by project guidelines.",
-      reward: "5 SUI",
-    },
-    {
-      id: "sub-4",
-      projectId: projectId || "",
-      contributorName: "dave.sui",
-      contributorAddress: "0x4567...8901",
-      contributorAvatar: avatarImage,
-      title: "Abdominal Ultrasound Dataset",
-      description:
-        "High-resolution abdominal ultrasound images with comprehensive annotations.",
-      tags: ["Ultrasound", "Abdomen"],
-      status: "pending",
-      previewDatasetUrl: previewImage,
-      previewDatasetSize: "2.2 MB",
-      submittedAt: "3 hours ago",
-      reward: "5 SUI",
-    },
-  ]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+
+  useEffect(() => {
+    if (project?.submissions) {
+      setSubmissions(project.submissions);
+    } else {
+      setSubmissions([]);
+    }
+  }, [project?.submissions]);
 
   // Filter submissions based on status
+  const normalizeStatus = (status: Submission["status"]) =>
+    status?.toLowerCase() as "pending" | "approved" | "rejected";
+
   const filteredSubmissions = submissions.filter((sub) => {
     if (statusFilter === "all") return true;
-    return sub.status === statusFilter;
+    return normalizeStatus(sub.status) === statusFilter;
   });
 
   // Calculate submission counts
-  const submissionCounts = {
-    pending: submissions.filter((s) => s.status === "pending").length,
-    approved: submissions.filter((s) => s.status === "approved").length,
-    rejected: submissions.filter((s) => s.status === "rejected").length,
-    total: submissions.length,
-  };
+  const submissionCounts = useMemo(
+    () =>
+      submissions.reduce(
+        (acc, submission) => {
+          const normalized = normalizeStatus(submission.status);
+          acc[normalized] += 1;
+          acc.total += 1;
+          return acc;
+        },
+        { pending: 0, approved: 0, rejected: 0, total: 0 },
+      ),
+    [submissions],
+  );
 
   // Handlers
   const handleViewDetails = (submission: Submission) => {
@@ -146,32 +94,29 @@ export default function ProjectDetailPage() {
   };
 
   const handleApproveSubmission = (submission: Submission) => {
-    const now = new Date();
+    const now = Date.now();
     setSubmissions((prev) =>
       prev.map((sub) =>
         sub.id === submission.id
           ? {
               ...sub,
-              status: "approved" as const,
-              fullDatasetUrl: `https://example.com/datasets/full-dataset-${sub.id}.zip`,
-              fullDatasetSize: "125 MB",
-              reviewedAt: formatRelativeTime(now.toISOString()),
+              status: "APPROVED",
+              reviewedAt: now,
             }
           : sub,
       ),
     );
   };
 
-  const handleRejectSubmission = (submission: Submission, reason: string) => {
-    const now = new Date();
+  const handleRejectSubmission = (submission: Submission) => {
+    const now = Date.now();
     setSubmissions((prev) =>
       prev.map((sub) =>
         sub.id === submission.id
           ? {
               ...sub,
-              status: "rejected" as const,
-              rejectedReason: reason,
-              reviewedAt: formatRelativeTime(now.toISOString()),
+              status: "REJECTED",
+              reviewedAt: now,
             }
           : sub,
       ),
@@ -191,7 +136,6 @@ export default function ProjectDetailPage() {
     { rank: 3, user: "carol.sui", metric: "Submissions", metricValue: "32" },
   ];
 
-  
   if (isLoading) {
     return <Loading />;
   }
@@ -203,8 +147,6 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
-
-  const project = data.data as ProjectEvent | undefined;
 
   if (!project) {
     return (
@@ -220,10 +162,12 @@ export default function ProjectDetailPage() {
     className: "bg-gray-400",
   };
 
-  const progress = (project.approvedCount / project.targetSubmissions) * 100;
-  if(!project.rewardPool || !project.deadline){
-      return null;
-    }
+  const progress = project.targetSubmissions
+    ? Math.min(100, (project.approvedCount / project.targetSubmissions) * 100)
+    : 0;
+  if (!project.rewardPool || !project.deadline) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col p-6">
@@ -279,14 +223,14 @@ export default function ProjectDetailPage() {
                   <h3 className="text-lg font-semibold mb-4">
                     Submission Requirements
                   </h3>
-                  <ul className="space-y-3">
+                  {/* <ul className="space-y-3">
                     {project.submissionRequirements.map((req, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">{req}</span>
                       </li>
                     ))}
-                  </ul>
+                  </ul> */}
                 </TabsContent>
 
                 <TabsContent value="activity" className="mt-6">
@@ -362,15 +306,15 @@ export default function ProjectDetailPage() {
                           {filteredSubmissions.map((submission) => (
                             <SubmissionCard
                               key={submission.id}
-                              submission={submission}
+                              submissionId={submission.id}
                               onViewDetails={handleViewDetails}
                               onApprove={
-                                submission.status === "pending"
+                                submission.status === "PENDING"
                                   ? handleApproveSubmission
                                   : undefined
                               }
                               onReject={
-                                submission.status === "pending"
+                                submission.status === "PENDING"
                                   ? (sub) => {
                                       // Open detail dialog for reject (reason will be entered in dialog)
                                       handleViewDetails(sub);
@@ -412,17 +356,13 @@ export default function ProjectDetailPage() {
                     <span className="text-sm text-muted-foreground">
                       Progress
                     </span>
-                    <span className="text-sm font-semibold">
-                      {progress}%
-                    </span>
+                    <span className="text-sm font-semibold">{progress}%</span>
                   </div>
-                  <Progress
-                    value={progress}
-                    className="h-2 mb-2"
-                  />
+                  <Progress value={progress} className="h-2 mb-2" />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {project.submissionsCount}/{project.targetSubmissions} submissions
+                      {project.submissionsCount}/{project.targetSubmissions}{" "}
+                      submissions
                     </span>
                   </div>
                 </div>
@@ -436,7 +376,9 @@ export default function ProjectDetailPage() {
                       <div className="text-xs text-muted-foreground">
                         Total Reward Pool
                       </div>
-                      <div className="font-semibold">{formattedSui(project.rewardPool)} SUI</div>
+                      <div className="font-semibold">
+                        {formattedSui(project.rewardPool)} SUI
+                      </div>
                     </div>
                   </div>
 
@@ -449,7 +391,11 @@ export default function ProjectDetailPage() {
                         Per Submission
                       </div>
                       <div className="font-semibold">
-                        {formattedSui(project.rewardPool, project.submissionsCount)} SUI
+                        {formattedSui(
+                          project.rewardPool,
+                          project.targetSubmissions,
+                        )}{" "}
+                        SUI
                       </div>
                     </div>
                   </div>
@@ -462,7 +408,9 @@ export default function ProjectDetailPage() {
                       <div className="text-xs text-muted-foreground">
                         Deadline
                       </div>
-                      <div className="font-semibold">{getDaysRemaining(project.deadline)} days</div>
+                      <div className="font-semibold">
+                        {getDaysRemaining(project.deadline)} days
+                      </div>
                     </div>
                   </div>
 
