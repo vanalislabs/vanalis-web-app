@@ -9,6 +9,7 @@ export function parseDecimalToBigInt(amount: string, decimals = DECIMALS): bigin
     const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);
     return BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fracPadded || "0");
   } 
+  
 export function bigIntToDecimalString(value: bigint, decimals = DECIMALS): string {
     const base = 10n ** BigInt(decimals);
     const whole = value / base;

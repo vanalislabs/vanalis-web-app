@@ -15,17 +15,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getDaysRemaining } from "@/lib/convertDate";
 import { projectStatus } from "@/constants/projectStatus";
-import { formattedSui } from "@/lib/convertDecimals";
 import { Button } from "./ui/button";
 
 interface MyProjectCardProps {
   id: string;
   title: string;
   imageUrl: string;
-  status: "OPEN" | "COMPLETED" | "closing-soon";
+  status: "OPEN" | "COMPLETED";
   rewardPool: number;
   deadline: number;
   approvedCount: number;

@@ -55,6 +55,7 @@ export default function MyProjectsPage() {
         </div>
 
         <Tabs defaultValue="all" className="w-full">
+          
           <TabsList>
             <TabsTrigger value="all" data-testid="tab-all">
               All ({projects.length})
@@ -67,6 +68,11 @@ export default function MyProjectsPage() {
               {projects.filter((p) => p.status === "COMPLETED").length})
             </TabsTrigger>
           </TabsList>
+          {projects.length === 0 && (
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-black">Project is empty</p>
+                </div>
+              )}
 
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

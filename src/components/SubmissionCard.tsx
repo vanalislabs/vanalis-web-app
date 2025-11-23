@@ -1,40 +1,101 @@
-import { CheckCircle, XCircle, Eye, Download } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { statusConfig } from "@/constants/submissionStatus";
-
-export interface Submission {
-  id: string;
-  projectId: string;
-  contributorName: string;
-  contributorAddress: string;
-  contributorAvatar?: string;
-  title: string;
-  description: string;
-  tags?: string[];
-  status: "pending" | "approved" | "rejected";
-  previewDatasetUrl: string;
-  fullDatasetUrl?: string;
-  previewDatasetSize?: string;
-  fullDatasetSize?: string;
-  submittedAt: string;
-  reviewedAt?: string;
-  rejectedReason?: string;
-  reward: string;
-}
+import { Avatar } from "@/components/ui/avatar";
+import { submissionStatus } from "@/constants/submissionStatus";
+import { Submission } from "@/types/submission";
+import { useGetSubmissionById } from "@/hooks/submission/useGetSubmissionById";
+import { getDate } from "@/lib/convertDate";
+import { formattedSui } from "@/lib/convertDecimals";
+import { ApproveSubmissionDialog } from "@/components/submission/ApproveSubmissionDialog";
+import { RejectSubmissionDialog } from "@/components/submission/RejectSubmissionDialog";
+import {
+  ReviewSubmissionValues,
+  useReviewSubmission,
+} from "@/hooks/submission/useReviewSubmission";
+import toast from "react-hot-toast";
 
 interface SubmissionCardProps {
-  submission: Submission;
+  submissionId: string;
   onViewDetails: (submission: Submission) => void;
-  onApprove?: (submission: Submission) => void;
-  onReject?: (submission: Submission) => void;
+  onReviewed?: () => void;
 }
 
-export function SubmissionCard({ submission, onViewDetails, onApprove, onReject }: SubmissionCardProps) {
-  const status = statusConfig[submission.status];
-  const StatusIcon = status.icon;
+export function SubmissionCard({
+  submissionId,
+  onViewDetails,
+  onReviewed,
+}: SubmissionCardProps) {
+  const { data, error, refetch } = useGetSubmissionById(submissionId);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [activeAction, setActiveAction] = useState<"approve" | "reject" | null>(
+    null,
+  );
+  const { reviewSubmission, isSubmitting } = useReviewSubmission();
+
+  const submission = data?.data as Submission | undefined;
+
+  if (!submission || error) {
+    return null;
+  }
+  const statusKey = (
+    submission.status || "PENDING"
+  ).toUpperCase() as keyof typeof submissionStatus;
+
+  const config = submissionStatus[statusKey] ?? submissionStatus.PENDING;
+  const StatusIcon = config.icon;
+  const rewardLabel = `${formattedSui(
+    submission.project.rewardPool,
+    submission.project.targetSubmissions,
+  )} SUI`;
+
+  const projectId = submission.project?.id ?? submission.projectId ?? "";
+
+  const handleReview = async (approved: boolean) => {
+    if (!projectId) {
+      toast.error("Missing project identifier.");
+      return;
+    }
+
+    const targetAction = approved ? "approve" : "reject";
+
+    try {
+      setActiveAction(targetAction);
+
+      const payload: ReviewSubmissionValues = {
+        projectId,
+        submissionId: submission.id,
+        approved,
+      };
+
+      await reviewSubmission(payload);
+      await refetch();
+
+      if (approved) {
+        toast.success("Submission approved!");
+      } else {
+        toast.success("Submission rejected!");
+      }
+
+      onReviewed?.();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to review submission.");
+    } finally {
+      setActiveAction(null);
+      setShowApproveDialog(false);
+      setShowRejectDialog(false);
+    }
+  };
+
+  const confirmApprove = () => handleReview(true);
+  const confirmReject = () => handleReview(false);
+
+  const isApprovePending = activeAction === "approve" && isSubmitting;
+  const isRejectPending = activeAction === "reject" && isSubmitting;
 
   return (
     <Card className="hover-elevate transition-all">
@@ -42,22 +103,24 @@ export function SubmissionCard({ submission, onViewDetails, onApprove, onReject 
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage src={submission.contributorAvatar} />
-              <AvatarFallback>{submission.contributorName[0]}</AvatarFallback>
+              {/* <AvatarImage src={submission.contributorAvatar} />
+              <AvatarFallback>{submission.contributorName[0]}</AvatarFallback> */}
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-base line-clamp-1">{submission.title}</h3>
-                <Badge className={status.className}>
+                <h3 className="font-semibold text-base line-clamp-1">
+                  {submission.project.title}
+                </h3>
+                <Badge className={config.className}>
                   <StatusIcon className="h-3 w-3 mr-1" />
-                  {status.label}
+                  {config.label}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{submission.description}</p>
+              {/* <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{submission.description}</p> */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-medium">{submission.contributorName}</span>
+                {/* <span className="font-medium">{submission.contributorName}</span> */}
                 <span>•</span>
-                <span>{submission.contributorAddress}</span>
+                <span>{submission.contributor}</span>
               </div>
             </div>
           </div>
@@ -67,23 +130,13 @@ export function SubmissionCard({ submission, onViewDetails, onApprove, onReject 
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4 text-muted-foreground">
-            <span>Submitted {submission.submittedAt}</span>
-            {submission.previewDatasetSize && (
+            <span>Submitted {getDate(submission.submittedAt)}</span>
+            {/* {submission.previewDatasetSize && (
               <span>Preview: {submission.previewDatasetSize}</span>
-            )}
+            )} */}
           </div>
-          <div className="font-semibold text-primary">{submission.reward}</div>
+          <div className="font-semibold text-primary">{rewardLabel}</div>
         </div>
-
-        {submission.tags && submission.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {submission.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border">
           <Button
@@ -95,33 +148,29 @@ export function SubmissionCard({ submission, onViewDetails, onApprove, onReject 
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </Button>
-          {submission.status === "pending" && (
+          {submission.status === "PENDING" && (
             <>
-              {onApprove && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="flex-1 sm:flex-initial"
-                  onClick={() => onApprove(submission)}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve
-                </Button>
-              )}
-              {onReject && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1 sm:flex-initial"
-                  onClick={() => onReject(submission)}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-              )}
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 sm:flex-initial"
+                onClick={() => setShowApproveDialog(true)}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 sm:flex-initial"
+                onClick={() => setShowRejectDialog(true)}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Reject
+              </Button>
             </>
           )}
-          {submission.status === "approved" && submission.fullDatasetUrl && (
+          {/* {submission.status === "APPROVED" && submission.fullDatasetUrl && (
             <Button
               variant="outline"
               size="sm"
@@ -131,18 +180,31 @@ export function SubmissionCard({ submission, onViewDetails, onApprove, onReject 
               <Download className="h-4 w-4 mr-2" />
               Download Full Dataset
             </Button>
-          )}
+          )} */}
         </div>
 
-        {submission.status === "rejected" && submission.rejectedReason && (
+        {/* {submission.status === "REJECTED" && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-700 dark:text-red-400">
               <span className="font-semibold">Rejection reason:</span> {submission.rejectedReason}
             </p>
           </div>
-        )}
+        )} */}
       </CardContent>
+      <ApproveSubmissionDialog
+        open={showApproveDialog}
+        onOpenChange={setShowApproveDialog}
+        rewardLabel={rewardLabel}
+        onConfirm={confirmApprove}
+        isSubmitting={isApprovePending}
+      />
+
+      <RejectSubmissionDialog
+        open={showRejectDialog}
+        onOpenChange={setShowRejectDialog}
+        onConfirm={confirmReject}
+        isSubmitting={isRejectPending}
+      />
     </Card>
   );
 }
-

@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 
-export function useGetProjectById(id: string) {
+export function useGetSubmissionById(id: string) {
   const query = useQuery({
-    queryKey: ["project", id],
+    queryKey: ["submission", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data } = await api.get(`project/detail/${id}`);
+      const { data } = await api.get(`/project/submission/${id}`);
       return data;
     },
     enabled: !!id && id.trim() !== "",
