@@ -10,12 +10,14 @@ import { BrowserRouter } from "react-router";
 import App from "./App.tsx";
 import { networkConfig } from "./networkConfig.ts";
 import { AuthProvider } from "./context/AuthContext.tsx";
+import { Toaster } from "react-hot-toast";
 
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
+			<Toaster position="top-center" />
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider autoConnect>
           <BrowserRouter>

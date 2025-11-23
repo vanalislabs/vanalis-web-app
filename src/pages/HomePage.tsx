@@ -6,49 +6,26 @@ import { DatasetCard } from "@/components/DatasetCard";
 import { StatsCard } from "@/components/StatsCard";
 import { LeaderboardItem } from "@/components/LeaderboardItem";
 import { ActivityFeedItem } from "@/components/ActivityFeedItem";
-import heroImage from "@assets/dummy/Purple_data_network_hero_background_c825abc3.png";
-import projectImage from "@assets/dummy/Team_data_collection_illustration_dd59af91.png";
 import datasetImage from "@assets/dummy/AI_dataset_visualization_thumbnail_8ab46a36.png";
 import avatarImage from "@assets/dummy/Tech_professional_avatar_headshot_e62e7352.png";
+import { useGetProjectFeatured } from "@/hooks/project/useGetProjectFeatured";
+import Loading from "@/loading";
 
 export default function HomePage() {
-  //todo: remove mock functionality
-  const featuredProjects = [
-    {
-      id: "1",
-      title: "Medical Image Dataset Collection",
-      image: projectImage,
-      status: "open" as const,
-      reward: "5,000 SUI",
-      deadline: "30 days",
-      submissions: 245,
-      goal: 1000,
-      curatorName: "Dr. Sarah Chen",
-      curatorAvatar: avatarImage,
-    },
-    {
-      id: "2",
-      title: "Natural Language Processing Dataset",
-      image: projectImage,
-      status: "closing-soon" as const,
-      reward: "3,500 SUI",
-      deadline: "7 days",
-      submissions: 890,
-      goal: 1000,
-      curatorName: "Alex Johnson",
-    },
-    {
-      id: "3",
-      title: "Computer Vision Training Data",
-      image: projectImage,
-      status: "open" as const,
-      reward: "8,000 SUI",
-      deadline: "45 days",
-      submissions: 120,
-      goal: 2000,
-      curatorName: "Maria Garcia",
-    },
-  ];
+
+  const {data, isLoading, error} = useGetProjectFeatured();
+
+  if(isLoading){
+      return <Loading />
+    }
+  
+    if (error) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <p className="text-red-500">Failed to load projects</p>
+        </div>
+      );
+    }
 
   const featuredDatasets = [
     {
@@ -120,7 +97,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProjects.map((project) => (
+            {data.map((project) => (
               <ProjectCard key={project.id} {...project} />
             ))}
           </div>
