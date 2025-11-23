@@ -20,5 +20,10 @@ export type Submission = {
     totalRewardPool: number;
     targetSubmissions: number;
     status: "OPEN" | "COMPLETED";
+    submissionsCount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    createdAt: number;
+    deadline: number;
   };
 };

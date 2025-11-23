@@ -1,12 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  CheckCircle,
-  XCircle,
-  Calendar,
-  User,
-  Download,
-  Loader,
-} from "lucide-react";
+import { CheckCircle, XCircle, Calendar, User, Loader } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,16 +30,14 @@ interface SubmissionDetailDialogProps {
   submission: Submission | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onApprove: (submission: Submission) => void;
-  onReject: (submission: Submission) => void;
+  onReviewed?: () => void;
 }
 
 export function SubmissionDetailDialog({
   submission,
   open,
   onOpenChange,
-  onApprove,
-  onReject,
+  onReviewed,
 }: SubmissionDetailDialogProps) {
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -87,14 +78,14 @@ export function SubmissionDetailDialog({
       await reviewSubmission(payload);
 
       if (approved) {
-        onApprove(submission);
         toast.success("Submission approved!");
       } else {
-        onReject(submission);
         toast.success("Submission rejected!");
       }
+
+      onReviewed?.();
     },
-    [onApprove, onReject, projectIdParam, reviewSubmission, submission],
+    [onReviewed, projectIdParam, reviewSubmission, submission],
   );
 
   const handleApproveConfirm = async () => {

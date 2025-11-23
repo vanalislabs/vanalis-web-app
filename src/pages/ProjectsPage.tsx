@@ -66,7 +66,6 @@ export default function ProjectsPage() {
                 <SelectContent>
                   <SelectItem value="ALL">All Status</SelectItem>
                   <SelectItem value="OPEN">Open</SelectItem>
-                  {/* <SelectItem value="closing-soon">Closing Soon</SelectItem> */}
                   <SelectItem value="COMPLETED">Completed</SelectItem>
                 </SelectContent>
               </Select>

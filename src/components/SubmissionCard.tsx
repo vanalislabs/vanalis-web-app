@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, XCircle, Eye, Download } from "lucide-react";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,17 +20,15 @@ import toast from "react-hot-toast";
 interface SubmissionCardProps {
   submissionId: string;
   onViewDetails: (submission: Submission) => void;
-  onApprove?: (submission: Submission) => void;
-  onReject?: (submission: Submission) => void;
+  onReviewed?: () => void;
 }
 
 export function SubmissionCard({
   submissionId,
   onViewDetails,
-  onApprove,
-  onReject,
+  onReviewed,
 }: SubmissionCardProps) {
-  const { data, error } = useGetSubmissionById(submissionId);
+  const { data, error, refetch } = useGetSubmissionById(submissionId);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [activeAction, setActiveAction] = useState<"approve" | "reject" | null>(
@@ -74,14 +72,15 @@ export function SubmissionCard({
       };
 
       await reviewSubmission(payload);
+      await refetch();
 
       if (approved) {
-        await onApprove?.(submission);
         toast.success("Submission approved!");
       } else {
-        await onReject?.(submission);
         toast.success("Submission rejected!");
       }
+
+      onReviewed?.();
     } catch (err) {
       console.error(err);
       toast.error("Failed to review submission.");
@@ -151,28 +150,24 @@ export function SubmissionCard({
           </Button>
           {submission.status === "PENDING" && (
             <>
-              {onApprove && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="flex-1 sm:flex-initial"
-                  onClick={() => setShowApproveDialog(true)}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve
-                </Button>
-              )}
-              {onReject && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1 sm:flex-initial"
-                  onClick={() => setShowRejectDialog(true)}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-              )}
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 sm:flex-initial"
+                onClick={() => setShowApproveDialog(true)}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 sm:flex-initial"
+                onClick={() => setShowRejectDialog(true)}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Reject
+              </Button>
             </>
           )}
           {/* {submission.status === "APPROVED" && submission.fullDatasetUrl && (
@@ -196,24 +191,20 @@ export function SubmissionCard({
           </div>
         )} */}
       </CardContent>
-      {onApprove && (
-        <ApproveSubmissionDialog
-          open={showApproveDialog}
-          onOpenChange={setShowApproveDialog}
-          rewardLabel={rewardLabel}
-          onConfirm={confirmApprove}
-          isSubmitting={isApprovePending}
-        />
-      )}
+      <ApproveSubmissionDialog
+        open={showApproveDialog}
+        onOpenChange={setShowApproveDialog}
+        rewardLabel={rewardLabel}
+        onConfirm={confirmApprove}
+        isSubmitting={isApprovePending}
+      />
 
-      {onReject && (
-        <RejectSubmissionDialog
-          open={showRejectDialog}
-          onOpenChange={setShowRejectDialog}
-          onConfirm={confirmReject}
-          isSubmitting={isRejectPending}
-        />
-      )}
+      <RejectSubmissionDialog
+        open={showRejectDialog}
+        onOpenChange={setShowRejectDialog}
+        onConfirm={confirmReject}
+        isSubmitting={isRejectPending}
+      />
     </Card>
   );
 }

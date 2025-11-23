@@ -10,10 +10,11 @@ export type ProjectEvent = {
   category: string;
   imageUrl: string;
   rewardPool: number;
+  totalRewardPool: number;
   targetSubmissions: number;
+  status: "OPEN" | "COMPLETED";
   createdAt: number;
   deadline: number;
-  status: "OPEN" | "COMPLETED" | "closing-soon";
   submissions: Submission[];
 
   submissionsCount: number;

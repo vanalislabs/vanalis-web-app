@@ -18,10 +18,4 @@ export const projectStatus = {
     variant: "outline" as const,
     className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
   },
-  "closing-soon": {
-    label: "Closing Soon",
-    variant: "secondary" as const,
-    className:
-      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  },
 } as const;

@@ -42,7 +42,6 @@ export default function SubmitDataPage() {
 
   // 3. Initialize Form (Handles Validation & Input State)
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors },
@@ -67,7 +66,7 @@ export default function SubmitDataPage() {
       case "encrypting":
         return 35;
       case "uploading_walrus":
-        return 65;
+        return 45;
       case "submitting_chain":
         return 80;
       case "success":

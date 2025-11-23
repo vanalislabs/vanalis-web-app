@@ -22,7 +22,6 @@ export const SearchResultItem = forwardRef<HTMLAnchorElement, SearchResultItemPr
       const project = data as ProjectSearchResult;
       const statusConfig = {
         open: { label: "Open", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-        "closing-soon": { label: "Closing Soon", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
         completed: { label: "Completed", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400" },
       };
 
