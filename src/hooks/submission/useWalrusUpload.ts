@@ -55,7 +55,6 @@ export function useWalrusUpload() {
 
       // Step 5: Get Blob ID
       const files = await flow.listFiles();
-      console.log(files);
       
       if (!files[0] || !files[0].blobId) {
         throw new Error("Upload succeeded but no Blob ID was returned");

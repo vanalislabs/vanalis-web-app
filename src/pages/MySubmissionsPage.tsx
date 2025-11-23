@@ -8,9 +8,11 @@ import { useGetMySubmissions } from "@/hooks/submission/useGetMySubmissions";
 import { submissionStatus } from "@/constants/submissionStatus";
 import { getDate } from "@/lib/convertDate";
 import Loading from "@/loading";
+import { Submission } from "@/types/submission";
 
 export default function MySubmissionsPage() {
-  const { data: submissions, isLoading, error } = useGetMySubmissions();
+  const { data, isLoading, error } = useGetMySubmissions();
+  const submissions = (data as Submission[]) ?? [];
 
   if (isLoading) {
     return <Loading />;
@@ -124,14 +126,6 @@ export default function MySubmissionsPage() {
                             View Project
                           </Button>
                         </Link>
-                        {submission.status === "REJECTED" && (
-                          <Button
-                            size="sm"
-                            data-testid={`button-resubmit-${submission.id}`}
-                          >
-                            Resubmit
-                          </Button>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -166,9 +160,11 @@ export default function MySubmissionsPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-muted-foreground">
-                            Reward
+                            {/* Reward */}
                           </div>
-                          {/* <div className="text-lg font-bold text-primary">{submission.reward}</div> */}
+                          <div className="text-lg font-bold text-primary">
+                            {/* {submission.project.rewardPool} */}
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -211,7 +207,7 @@ export default function MySubmissionsPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-muted-foreground">
-                            Expected Reward
+                            {/* Expected Reward */}
                           </div>
                           {/* <div className="text-lg font-bold text-muted-foreground">{submission.reward}</div> */}
                         </div>
@@ -269,7 +265,6 @@ export default function MySubmissionsPage() {
                             View Project
                           </Button>
                         </Link>
-                        <Button size="sm">Resubmit</Button>
                       </div>
                     </CardContent>
                   </Card>

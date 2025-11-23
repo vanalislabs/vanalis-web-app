@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import type { PaginatedApiResponse } from "@/types/api";
 import { useEffect, useMemo, useState } from "react";
-import { SUBMISSION_STATUS, SubmissionStatus } from "@/constants/submissionStatus";
+import {
+  SUBMISSION_STATUS,
+  SubmissionStatus,
+} from "@/constants/submissionStatus";
 import { Submission } from "@/types/submission";
 
 export function useGetMySubmissions(
@@ -48,7 +51,7 @@ export function useGetMySubmissions(
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
   });
 
   const handlePerPageChange = (value: string) => {
