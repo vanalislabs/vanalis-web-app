@@ -1,27 +1,55 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { Calendar, DollarSign, Upload, CheckCircle, Clock, TrendingUp, XCircle } from "lucide-react";
+import {
+  Calendar,
+  DollarSign,
+  Upload,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LeaderboardItem } from "@/components/LeaderboardItem";
 import { ActivityFeedItem } from "@/components/ActivityFeedItem";
 import { SubmissionCard, Submission } from "@/components/SubmissionCard";
 import { SubmissionDetailDialog } from "@/components/SubmissionDetailDialog";
 import { formatRelativeTime } from "@/utils/dateUtils";
-import projectImage from "@assets/dummy/Team_data_collection_illustration_dd59af91.png";
 import avatarImage from "@assets/dummy/Tech_professional_avatar_headshot_e62e7352.png";
 import previewImage from "@assets/dummy/AI_dataset_visualization_thumbnail_8ab46a36.png";
+import { useGetProjectById } from "@/hooks/project/useGetProjectById";
+import Loading from "@/loading";
+import { projectStatus } from "@/constants/projectStatus";
+import { ProjectEvent } from "@/types/project";
+import { getDate, getDaysRemaining } from "@/lib/convertDate";
+import { formattedSui } from "@/lib/convertDecimals";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
-  const projectId = id;
+  const projectId = id ?? "";
 
   const isProjectOwner = true;
+
+  const { data, isLoading, error } = useGetProjectById(projectId);
+
+    const [selectedSubmission, setSelectedSubmission] =
+    useState<Submission | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "approved" | "rejected"
+  >("all");
 
   // State for submissions
   const [submissions, setSubmissions] = useState<Submission[]>([
@@ -32,7 +60,8 @@ export default function ProjectDetailPage() {
       contributorAddress: "0x1234...5678",
       contributorAvatar: avatarImage,
       title: "Chest X-ray Dataset - Anterior View",
-      description: "High-quality chest X-ray images with proper annotations. Includes 50 images covering various conditions.",
+      description:
+        "High-quality chest X-ray images with proper annotations. Includes 50 images covering various conditions.",
       tags: ["X-ray", "Chest", "Medical"],
       status: "pending",
       previewDatasetUrl: previewImage,
@@ -47,7 +76,8 @@ export default function ProjectDetailPage() {
       contributorAddress: "0x2345...6789",
       contributorAvatar: avatarImage,
       title: "Lung CT Scan Collection",
-      description: "Comprehensive lung CT scan dataset with detailed annotations. All images are anonymized and comply with privacy regulations.",
+      description:
+        "Comprehensive lung CT scan dataset with detailed annotations. All images are anonymized and comply with privacy regulations.",
       tags: ["CT Scan", "Lung", "Medical"],
       status: "approved",
       previewDatasetUrl: previewImage,
@@ -65,14 +95,16 @@ export default function ProjectDetailPage() {
       contributorAddress: "0x3456...7890",
       contributorAvatar: avatarImage,
       title: "MRI Brain Images",
-      description: "MRI brain images dataset. However, some images lack proper labeling.",
+      description:
+        "MRI brain images dataset. However, some images lack proper labeling.",
       tags: ["MRI", "Brain"],
       status: "rejected",
       previewDatasetUrl: previewImage,
       previewDatasetSize: "1.8 MB",
       submittedAt: "1 day ago",
       reviewedAt: "12 hours ago",
-      rejectedReason: "Images lack proper anatomical region labeling as required by project guidelines.",
+      rejectedReason:
+        "Images lack proper anatomical region labeling as required by project guidelines.",
       reward: "5 SUI",
     },
     {
@@ -82,7 +114,8 @@ export default function ProjectDetailPage() {
       contributorAddress: "0x4567...8901",
       contributorAvatar: avatarImage,
       title: "Abdominal Ultrasound Dataset",
-      description: "High-resolution abdominal ultrasound images with comprehensive annotations.",
+      description:
+        "High-resolution abdominal ultrasound images with comprehensive annotations.",
       tags: ["Ultrasound", "Abdomen"],
       status: "pending",
       previewDatasetUrl: previewImage,
@@ -91,10 +124,6 @@ export default function ProjectDetailPage() {
       reward: "5 SUI",
     },
   ]);
-
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
 
   // Filter submissions based on status
   const filteredSubmissions = submissions.filter((sub) => {
@@ -122,14 +151,14 @@ export default function ProjectDetailPage() {
       prev.map((sub) =>
         sub.id === submission.id
           ? {
-            ...sub,
-            status: "approved" as const,
-            fullDatasetUrl: `https://example.com/datasets/full-dataset-${sub.id}.zip`,
-            fullDatasetSize: "125 MB",
-            reviewedAt: formatRelativeTime(now.toISOString()),
-          }
-          : sub
-      )
+              ...sub,
+              status: "approved" as const,
+              fullDatasetUrl: `https://example.com/datasets/full-dataset-${sub.id}.zip`,
+              fullDatasetSize: "125 MB",
+              reviewedAt: formatRelativeTime(now.toISOString()),
+            }
+          : sub,
+      ),
     );
   };
 
@@ -139,54 +168,62 @@ export default function ProjectDetailPage() {
       prev.map((sub) =>
         sub.id === submission.id
           ? {
-            ...sub,
-            status: "rejected" as const,
-            rejectedReason: reason,
-            reviewedAt: formatRelativeTime(now.toISOString()),
-          }
-          : sub
-      )
+              ...sub,
+              status: "rejected" as const,
+              rejectedReason: reason,
+              reviewedAt: formatRelativeTime(now.toISOString()),
+            }
+          : sub,
+      ),
     );
   };
 
-  const project = {
-    id: projectId,
-    title: "Medical Image Dataset Collection",
-    description: "We are collecting high-quality medical imaging data for training AI models in healthcare diagnostics. Contributors will submit X-ray images with proper annotations and metadata. All data will be verified by medical professionals before being included in the final dataset.",
-    image: projectImage,
-    status: "open" as "open" | "closing-soon" | "completed",
-    reward: "5,000 SUI",
-    rewardPerSubmission: "5 SUI",
-    deadline: "30 days",
-    submissions: 245,
-    verified: 180,
-    goal: 1000,
-    curatorName: "Dr. Sarah Chen",
-    curatorAvatar: avatarImage,
-    curatorAddress: "0x7a3f...9d2e",
-    category: "Healthcare",
-    requirements: [
-      "X-ray images in DICOM or PNG format",
-      "Minimum resolution: 1024x1024 pixels",
-      "Proper anatomical region labeling",
-      "Patient privacy compliance (anonymized)",
-      "Medical professional verification preferred"
-    ],
-    createdAt: "2 weeks ago",
-    completionPercentage: 24.5,
-  };
-
   const topContributors = [
-    { rank: 1, user: "alice.sui", userAvatar: avatarImage, metric: "Submissions", metricValue: "45", badge: "Top Contributor" },
+    {
+      rank: 1,
+      user: "alice.sui",
+      userAvatar: avatarImage,
+      metric: "Submissions",
+      metricValue: "45",
+      badge: "Top Contributor",
+    },
     { rank: 2, user: "bob.sui", metric: "Submissions", metricValue: "38" },
     { rank: 3, user: "carol.sui", metric: "Submissions", metricValue: "32" },
   ];
 
-  const statusConfig = {
-    open: { label: "Open", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-    "closing-soon": { label: "Closing Soon", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-    completed: { label: "Completed", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400" },
+  
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-red-500">Project not found</p>
+      </div>
+    );
+  }
+
+  const project = data.data as ProjectEvent | undefined;
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-red-500">Project not found</p>
+      </div>
+    );
+  }
+
+  const statusKey = project.status as keyof typeof projectStatus;
+  const config = projectStatus[statusKey] ?? {
+    label: "Unknown",
+    className: "bg-gray-400",
   };
+
+  const progress = (project.approvedCount / project.targetSubmissions) * 100;
+  if(!project.rewardPool || !project.deadline){
+      return null;
+    }
 
   return (
     <div className="flex flex-col p-6">
@@ -194,7 +231,11 @@ export default function ProjectDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="aspect-video rounded-lg overflow-hidden">
-              <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+              <img
+                src={project.imageUrl}
+                alt={project.title}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             <div>
@@ -202,24 +243,22 @@ export default function ProjectDetailPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold">{project.title}</h1>
-                    <Badge className={statusConfig[project.status].className}>
-                      {statusConfig[project.status].label}
-                    </Badge>
+                    <Badge className={config.className}>{config.label}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <Badge variant="outline">{project.category}</Badge>
-                    <span>Created {project.createdAt}</span>
+                    <span>Created {getDate(project.createdAt)}</span>
                   </div>
                 </div>
               </div>
 
               <Tabs defaultValue="about" className="w-full">
                 <TabsList>
-                  <TabsTrigger value="about" data-testid="tab-about">About</TabsTrigger>
-                  <TabsTrigger value="requirements" data-testid="tab-requirements">Requirements</TabsTrigger>
-                  <TabsTrigger value="activity" data-testid="tab-activity">Activity</TabsTrigger>
+                  <TabsTrigger value="about">About</TabsTrigger>
+                  <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
                   {isProjectOwner && (
-                    <TabsTrigger value="submissions" data-testid="tab-submissions">
+                    <TabsTrigger value="submissions">
                       Submissions ({submissionCounts.total})
                     </TabsTrigger>
                   )}
@@ -227,15 +266,21 @@ export default function ProjectDetailPage() {
 
                 <TabsContent value="about" className="mt-6">
                   <div className="prose prose-sm max-w-none">
-                    <h3 className="text-lg font-semibold mb-3">Project Description</h3>
-                    <p className="text-muted-foreground leading-relaxed">{project.description}</p>
+                    <h3 className="text-lg font-semibold mb-3">
+                      Project Description
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {project.description}
+                    </p>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="requirements" className="mt-6">
-                  <h3 className="text-lg font-semibold mb-4">Submission Requirements</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Submission Requirements
+                  </h3>
                   <ul className="space-y-3">
-                    {project.requirements.map((req, index) => (
+                    {project.submissionRequirements.map((req, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">{req}</span>
@@ -246,10 +291,36 @@ export default function ProjectDetailPage() {
 
                 <TabsContent value="activity" className="mt-6">
                   <div className="space-y-2">
-                    <ActivityFeedItem type="submission" user="alice.sui" userAvatar={avatarImage} action="submitted to" target={project.title} timestamp="2 hours ago" />
-                    <ActivityFeedItem type="verification" user={project.curatorName} action="verified" target="New submission" timestamp="3 hours ago" />
-                    <ActivityFeedItem type="submission" user="bob.sui" action="submitted to" target={project.title} timestamp="5 hours ago" />
-                    <ActivityFeedItem type="reward" user="carol.sui" action="earned reward from" target={project.title} timestamp="8 hours ago" amount="5 SUI" />
+                    <ActivityFeedItem
+                      type="submission"
+                      user="alice.sui"
+                      userAvatar={avatarImage}
+                      action="submitted to"
+                      target={project.title}
+                      timestamp="2 hours ago"
+                    />
+                    <ActivityFeedItem
+                      type="verification"
+                      user={project.curator}
+                      action="verified"
+                      target="New submission"
+                      timestamp="3 hours ago"
+                    />
+                    <ActivityFeedItem
+                      type="submission"
+                      user="bob.sui"
+                      action="submitted to"
+                      target={project.title}
+                      timestamp="5 hours ago"
+                    />
+                    <ActivityFeedItem
+                      type="reward"
+                      user="carol.sui"
+                      action="earned reward from"
+                      target={project.title}
+                      timestamp="8 hours ago"
+                      amount="5 SUI"
+                    />
                   </div>
                 </TabsContent>
 
@@ -257,8 +328,15 @@ export default function ProjectDetailPage() {
                   <TabsContent value="submissions" className="mt-6">
                     <div className="space-y-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <h3 className="text-lg font-semibold">Submissions Review</h3>
-                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}>
+                        <h3 className="text-lg font-semibold">
+                          Submissions Review
+                        </h3>
+                        <Select
+                          value={statusFilter}
+                          onValueChange={(value) =>
+                            setStatusFilter(value as typeof statusFilter)
+                          }
+                        >
                           <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Filter by status" />
                           </SelectTrigger>
@@ -274,7 +352,9 @@ export default function ProjectDetailPage() {
                       {filteredSubmissions.length === 0 ? (
                         <Card>
                           <CardContent className="py-12 text-center">
-                            <p className="text-muted-foreground">No submissions found for the selected filter.</p>
+                            <p className="text-muted-foreground">
+                              No submissions found for the selected filter.
+                            </p>
                           </CardContent>
                         </Card>
                       ) : (
@@ -284,13 +364,17 @@ export default function ProjectDetailPage() {
                               key={submission.id}
                               submission={submission}
                               onViewDetails={handleViewDetails}
-                              onApprove={submission.status === "pending" ? handleApproveSubmission : undefined}
+                              onApprove={
+                                submission.status === "pending"
+                                  ? handleApproveSubmission
+                                  : undefined
+                              }
                               onReject={
                                 submission.status === "pending"
                                   ? (sub) => {
-                                    // Open detail dialog for reject (reason will be entered in dialog)
-                                    handleViewDetails(sub);
-                                  }
+                                      // Open detail dialog for reject (reason will be entered in dialog)
+                                      handleViewDetails(sub);
+                                    }
                                   : undefined
                               }
                             />
@@ -325,13 +409,21 @@ export default function ProjectDetailPage() {
               <CardContent className="flex flex-col gap-6">
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Progress</span>
-                    <span className="text-sm font-semibold">{project.completionPercentage}%</span>
+                    <span className="text-sm text-muted-foreground">
+                      Progress
+                    </span>
+                    <span className="text-sm font-semibold">
+                      {progress}%
+                    </span>
                   </div>
-                  <Progress value={project.completionPercentage} className="h-2 mb-2" />
+                  <Progress
+                    value={progress}
+                    className="h-2 mb-2"
+                  />
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{project.submissions} submissions</span>
-                    <span className="text-muted-foreground">{project.goal} goal</span>
+                    <span className="text-muted-foreground">
+                      {project.submissionsCount}/{project.targetSubmissions} submissions
+                    </span>
                   </div>
                 </div>
 
@@ -341,8 +433,10 @@ export default function ProjectDetailPage() {
                       <DollarSign className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Total Reward Pool</div>
-                      <div className="font-semibold">{project.reward}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Total Reward Pool
+                      </div>
+                      <div className="font-semibold">{formattedSui(project.rewardPool)} SUI</div>
                     </div>
                   </div>
 
@@ -351,8 +445,12 @@ export default function ProjectDetailPage() {
                       <TrendingUp className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Per Submission</div>
-                      <div className="font-semibold">{project.rewardPerSubmission}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Per Submission
+                      </div>
+                      <div className="font-semibold">
+                        {formattedSui(project.rewardPool, project.submissionsCount)} SUI
+                      </div>
                     </div>
                   </div>
 
@@ -361,8 +459,10 @@ export default function ProjectDetailPage() {
                       <Calendar className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Deadline</div>
-                      <div className="font-semibold">{project.deadline}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Deadline
+                      </div>
+                      <div className="font-semibold">{getDaysRemaining(project.deadline)} days</div>
                     </div>
                   </div>
 
@@ -371,36 +471,54 @@ export default function ProjectDetailPage() {
                       <CheckCircle className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Verified</div>
-                      <div className="font-semibold">{project.verified} items</div>
+                      <div className="text-xs text-muted-foreground">
+                        Approved
+                      </div>
+                      <div className="font-semibold">
+                        {project.approvedCount} items
+                      </div>
                     </div>
                   </div>
 
                   {isProjectOwner && (
                     <>
                       <div className="pt-3 border-t border-border">
-                        <div className="text-xs font-semibold text-muted-foreground mb-2">Submissions</div>
+                        <div className="text-xs font-semibold text-muted-foreground mb-2">
+                          Submissions
+                        </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                              <span className="text-xs text-muted-foreground">Pending</span>
+                              <span className="text-xs text-muted-foreground">
+                                Pending
+                              </span>
                             </div>
-                            <span className="font-semibold">{submissionCounts.pending}</span>
+                            <span className="font-semibold">
+                              {submissionCounts.pending}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                              <span className="text-xs text-muted-foreground">Approved</span>
+                              <span className="text-xs text-muted-foreground">
+                                Approved
+                              </span>
                             </div>
-                            <span className="font-semibold">{submissionCounts.approved}</span>
+                            <span className="font-semibold">
+                              {submissionCounts.approved}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                              <span className="text-xs text-muted-foreground">Rejected</span>
+                              <span className="text-xs text-muted-foreground">
+                                Rejected
+                              </span>
                             </div>
-                            <span className="font-semibold">{submissionCounts.rejected}</span>
+                            <span className="font-semibold">
+                              {submissionCounts.rejected}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -408,18 +526,18 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
 
-                {project.status === "open" && (
+                {project.status === "OPEN" && (
                   <Link to={`/projects/${project.id}/submit`}>
-                    <Button className="w-full" size="lg" data-testid="button-submit-data">
+                    <Button className="w-full" size="lg">
                       <Upload className="mr-2 h-5 w-5" />
                       Submit Data
                     </Button>
                   </Link>
                 )}
 
-                {project.status === "completed" && (
+                {project.status === "COMPLETED" && (
                   <Link to={`/marketplace/${project.id}`}>
-                    <Button className="w-full" size="lg" data-testid="button-view-dataset">
+                    <Button className="w-full" size="lg">
                       View Dataset
                     </Button>
                   </Link>
@@ -428,13 +546,20 @@ export default function ProjectDetailPage() {
                 <div className="pt-4 border-t border-border">
                   <div className="flex items-center gap-3 mb-2">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={project.curatorAvatar} />
-                      <AvatarFallback>{project.curatorName[0]}</AvatarFallback>
+                      {/* !TODO */}
+                      <AvatarImage src={undefined} />
+                      <AvatarFallback>{project.curator}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="text-xs text-muted-foreground">Curator</div>
-                      <div className="font-medium">{project.curatorName}</div>
-                      <div className="text-xs text-muted-foreground">{project.curatorAddress}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Curator
+                      </div>
+                      {/* !TODO name */}
+                      {/* <div className="font-medium">{project.curator}</div> */}
+                      <div className="text-xs text-muted-foreground">
+                        {/* !TODO address */}
+                        {/* {project.curator} */}
+                      </div>
                     </div>
                   </div>
                 </div>

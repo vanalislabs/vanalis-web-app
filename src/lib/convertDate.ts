@@ -1,5 +1,5 @@
-export function getDaysRemaining(deadlineMs: bigint) {
-  const deadline = Number(deadlineMs);
+export function getDaysRemaining(deadlineMs: number) {
+  const deadline = deadlineMs;
   const now = Date.now();
 
   const diff = deadline - now;
@@ -10,4 +10,10 @@ export function getDaysRemaining(deadlineMs: bigint) {
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
   return Math.ceil(diff / MS_PER_DAY);
+}
+
+export function getDate(value: number) {
+  const date = new Date(value);
+  return date.toLocaleDateString("en-US");
+
 }

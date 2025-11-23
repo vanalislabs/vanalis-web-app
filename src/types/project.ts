@@ -7,9 +7,9 @@ export type ProjectEvent = {
   dataType: string;
   category: string;
   imageUrl: string;
-  rewardPool: string;
+  rewardPool: number;
   targetSubmissions: number;
-  createdAt: string;
+  createdAt: number;
   deadline: number;
   status: "OPEN" | "COMPLETED" | "closing-soon";
 

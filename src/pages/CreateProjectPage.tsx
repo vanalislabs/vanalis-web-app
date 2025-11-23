@@ -104,20 +104,7 @@ export default function CreateProjectPage() {
       const tx = new Transaction();
 
       const rewardCoin = tx.splitCoins(tx.gas, [tx.pure.u64(totalBase)]);
-      console.log(
-        vanalisPackageId,
-        projectRegistryObjectId,
-        form.title,
-        form.description,
-        form.requirements,
-        form.dataType,
-        form.category,
-        form.imageUrl,
-        rewardCoin,
-        rewardPerBase,
-        targetSubmissions,
-        deadlineMs,
-      );
+
       tx.moveCall({
         target: `${vanalisPackageId}::project::create_project`,
         arguments: [

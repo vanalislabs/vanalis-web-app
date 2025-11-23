@@ -10,13 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDaysRemaining } from "@/lib/convertDate";
+import { projectStatus } from "@/constants/projectStatus";
+import { formattedSui } from "@/lib/convertDecimals";
 
 interface ProjectCardProps {
   id: string;
   title: string;
   imageUrl: string;
   status: "OPEN" | "COMPLETED" | "closing-soon";
-  rewardPool: string;
+  rewardPool: number;
   deadline: number;
   approvedCount: number;
   targetSubmissions: number;
@@ -38,47 +40,16 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const progress = (approvedCount / targetSubmissions) * 100;
 
-  const SUI_DECIMALS = 1_000_000_000n;
+  if(!rewardPool || !deadline){
+    return null;
+  }
 
-  const rewardPoolBigInt = BigInt(rewardPool);
-
-  const integerPart = rewardPoolBigInt / SUI_DECIMALS;
-  const fractionalPart = rewardPoolBigInt % SUI_DECIMALS;
-
-  const fractionalTwoDigits = Number((fractionalPart * 100n) / SUI_DECIMALS)
-    .toString()
-    .padStart(2, "0");
-
-  const formattedReward = `${integerPart.toString()}.${fractionalTwoDigits}`;
-  const formattedDeadline = getDaysRemaining(BigInt(deadline));
-
-  const statusConfig = {
-    OPEN: {
-      label: "Open",
-      variant: "default" as const,
-      className:
-        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    },
-    COMPLETED: {
-      label: "Completed",
-      variant: "outline" as const,
-      className:
-        "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-    },
-    "closing-soon": {
-      label: "Closing Soon",
-      variant: "secondary" as const,
-      className:
-        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    },
-  };
-
-  const config = statusConfig[status] ?? {
+  const config = projectStatus[status] ?? {
     label: "Unknown",
     className: "bg-gray-400",
   };
   return (
-    <Link to={`/projects/${id}`} data-testid={`card-project-${id}`}>
+    <Link to={`/projects/${id}`}>
       <Card className="overflow-hidden hover-elevate active-elevate-2 transition-all cursor-pointer h-full flex flex-col">
         <div className="relative aspect-video overflow-hidden">
           <img
@@ -113,11 +84,11 @@ export function ProjectCard({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <DollarSign className="h-4 w-4" />
-              <span>{formattedReward}</span>
+              <span>{formattedSui(rewardPool)} SUI</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              <span>{formattedDeadline} days</span>
+              <span>{getDaysRemaining(deadline)} days</span>
             </div>
           </div>
         </CardContent>
