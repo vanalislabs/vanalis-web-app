@@ -20,25 +20,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultipleTextInputs } from "@/components/ui/MultipleTextInputs";
-import { parseDecimalToBigInt } from "@/lib/convertDecimals";
-import { useNetworkVariable } from "@/networkConfig";
 import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
-import { Transaction } from "@mysten/sui/transactions";
+  useCreateProject,
+  CreateProjectFormValues,
+} from "@/hooks/project/useCreateProject";
 
 export default function CreateProjectPage() {
   const navigate = useNavigate();
-  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
-  const projectRegistryObjectId = useNetworkVariable("projectRegistryObjectId");
-  const suiClient = useSuiClient();
-  const account = useCurrentAccount();
-  const { mutateAsync: signAndExecute, isPending } =
-    useSignAndExecuteTransaction();
+  const { createProject, isSubmitting } = useCreateProject();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CreateProjectFormValues>({
     title: "",
     imageUrl: "",
     description: "",
@@ -54,91 +45,11 @@ export default function CreateProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!account) return;
-
-    const totalBase = parseDecimalToBigInt(form.rewardPool);
-    if (totalBase == null || totalBase <= 0n) {
-      console.error("Reward pool must be > 0");
-      return;
-    }
-
-    const targetSubmissions = BigInt(form.goal || "0");
-    if (targetSubmissions === 0n) {
-      console.error("Goal must be > 0");
-      return;
-    }
-
-    const rewardPerBase = totalBase / targetSubmissions;
-    if (rewardPerBase === 0n) {
-      console.warn(
-        "Calculated rewardPerSubmission is 0 — increase total reward or reduce goal",
-      );
-    }
-    const ts = Date.parse(form.deadline);
-    if (Number.isNaN(ts)) {
-      console.error("Invalid deadline");
-      return;
-    }
-
-    if (ts <= Date.now()) {
-      console.error("Deadline must be in the future");
-      return;
-    }
-
-    const deadlineMs = BigInt(ts);
-
-    const { totalBalance } = await suiClient.getBalance({
-      owner: account.address,
-      coinType: "0x2::sui::SUI",
-    });
-    
-    if (BigInt(totalBalance) < totalBase) {
-      console.error("Not enough SUI to create project");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const tx = new Transaction();
-
-      const rewardCoin = tx.splitCoins(tx.gas, [tx.pure.u64(totalBase)]);
-
-      tx.moveCall({
-        target: `${vanalisPackageId}::project::create_project`,
-        arguments: [
-          tx.object(projectRegistryObjectId),
-          tx.pure.string(form.title),
-          tx.pure.string(form.description),
-          tx.pure.vector("string", form.requirements),
-          tx.pure.string(form.dataType),
-          tx.pure.string(form.category),
-          tx.pure.string(form.imageUrl),
-          rewardCoin,
-          tx.pure.u64(rewardPerBase),
-          tx.pure.u64(targetSubmissions),
-          tx.pure.u64(deadlineMs),
-          tx.object("0x6"),
-        ],
-      });
-      try {
-        const executionResult = await signAndExecute({ transaction: tx });
-        const { digest } = executionResult;
-
-        await suiClient.waitForTransaction({
-          digest,
-          options: {
-            showEffects: true,
-            showEvents: true,
-            showBalanceChanges: true,
-          },
-        });
-
-        navigate("/my-projects");
-      } catch (err) {
-        console.error(err);
-      }
+      await createProject(form);
+      navigate("/my-projects");
     } catch (err) {
       console.error(err);
     } finally {
@@ -146,7 +57,7 @@ export default function CreateProjectPage() {
     }
   };
 
-  const loading = isLoading || isPending;
+  const loading = isLoading || isSubmitting;
 
   return (
     <div className="flex flex-col p-6">

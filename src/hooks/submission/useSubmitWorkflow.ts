@@ -32,10 +32,12 @@ export function useSubmitWorkflow(onSuccess?: () => void) {
       const fullUploadResponse = await uploadFullDataset(fullFile);
       const { filePathKey } = fullUploadResponse;
       // console.log("filePathKey: ",filePathKey);
+
       // Step 2: Get Keypair
       setStatus("fetching_keys");
       const keyData = await getKeypair();
-    //   console.log("priv key: ", keyData.data.privateKey);
+      // console.log("public key: ", keyData.data.publicKey);
+      // console.log("private key: ", keyData.data.privateKey);
 
       // Step 3: Encrypt the Key
       setStatus("encrypting");
@@ -43,21 +45,21 @@ export function useSubmitWorkflow(onSuccess?: () => void) {
         filePathKey,
         keyData.data.publicKey,
       );
-    //   console.log(cipherText);
+      //   console.log(cipherText);
 
       // Step 4: Upload Preview to Walrus
       setStatus("uploading_walrus");
       const blobId = await uploadToWalrus(previewFile);
-    //   console.log(blobId);
+      // console.log(blobId);
 
       // Step 5: Submit to Sui Smart Contract
       setStatus("submitting_chain");
       const res = await submitToContract(
-        cipherText,
         blobId,
+        cipherText,
         keyData.data.publicKey,
       );
-    //   console.log(res);
+      //   console.log(res);
 
       setStatus("success");
       toast.success("Dataset successfully submitted to chain!");
