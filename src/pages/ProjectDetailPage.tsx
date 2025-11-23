@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
   Calendar,
@@ -34,16 +34,26 @@ import { projectStatus } from "@/constants/projectStatus";
 import { ProjectEvent } from "@/types/project";
 import { getDate, getDaysRemaining } from "@/lib/convertDate";
 import { formattedSui } from "@/lib/convertDecimals";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const projectId = id ?? "";
 
-  const isProjectOwner = true;
-
-  const { data, isLoading, error } = useGetProjectById(projectId);
-
+  const account = useCurrentAccount();
+  
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: refetchProject,
+  } = useGetProjectById(projectId);
+  
   const project = (data?.data as ProjectEvent) ?? undefined;
+  const isProjectOwner = 
+    account?.address && 
+    project?.curator && 
+    account.address === project.curator;
 
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
@@ -52,22 +62,13 @@ export default function ProjectDetailPage() {
     "all" | "pending" | "approved" | "rejected"
   >("all");
 
-  // State for submissions
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-
-  useEffect(() => {
-    if (project?.submissions) {
-      setSubmissions(project.submissions);
-    } else {
-      setSubmissions([]);
-    }
-  }, [project?.submissions]);
-
   // Filter submissions based on status
   const normalizeStatus = (status: Submission["status"]) =>
     status?.toLowerCase() as "pending" | "approved" | "rejected";
 
-  const filteredSubmissions = submissions.filter((sub) => {
+  const projectSubmissions = project?.submissions ?? [];
+
+  const filteredSubmissions = projectSubmissions.filter((sub) => {
     if (statusFilter === "all") return true;
     return normalizeStatus(sub.status) === statusFilter;
   });
@@ -75,7 +76,7 @@ export default function ProjectDetailPage() {
   // Calculate submission counts
   const submissionCounts = useMemo(
     () =>
-      submissions.reduce(
+      projectSubmissions.reduce(
         (acc, submission) => {
           const normalized = normalizeStatus(submission.status);
           acc[normalized] += 1;
@@ -84,45 +85,13 @@ export default function ProjectDetailPage() {
         },
         { pending: 0, approved: 0, rejected: 0, total: 0 },
       ),
-    [submissions],
+    [projectSubmissions],
   );
-
   // Handlers
   const handleViewDetails = (submission: Submission) => {
     setSelectedSubmission(submission);
     setIsDetailDialogOpen(true);
   };
-
-  const handleApproveSubmission = (submission: Submission) => {
-    const now = Date.now();
-    setSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === submission.id
-          ? {
-              ...sub,
-              status: "APPROVED",
-              reviewedAt: now,
-            }
-          : sub,
-      ),
-    );
-  };
-
-  const handleRejectSubmission = (submission: Submission) => {
-    const now = Date.now();
-    setSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === submission.id
-          ? {
-              ...sub,
-              status: "REJECTED",
-              reviewedAt: now,
-            }
-          : sub,
-      ),
-    );
-  };
-
   const topContributors = [
     {
       rank: 1,
@@ -163,7 +132,12 @@ export default function ProjectDetailPage() {
   };
 
   const progress = project.targetSubmissions
-    ? Math.min(100, (project.approvedCount / project.targetSubmissions) * 100)
+    ? Number(
+        Math.min(
+          100,
+          (project.approvedCount / project.targetSubmissions) * 100,
+        ),
+      ).toFixed(2)
     : 0;
   if (!project.rewardPool || !project.deadline) {
     return null;
@@ -223,14 +197,14 @@ export default function ProjectDetailPage() {
                   <h3 className="text-lg font-semibold mb-4">
                     Submission Requirements
                   </h3>
-                  {/* <ul className="space-y-3">
+                  <ul className="space-y-3">
                     {project.submissionRequirements.map((req, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">{req}</span>
                       </li>
                     ))}
-                  </ul> */}
+                  </ul>
                 </TabsContent>
 
                 <TabsContent value="activity" className="mt-6">
@@ -308,19 +282,7 @@ export default function ProjectDetailPage() {
                               key={submission.id}
                               submissionId={submission.id}
                               onViewDetails={handleViewDetails}
-                              onApprove={
-                                submission.status === "PENDING"
-                                  ? handleApproveSubmission
-                                  : undefined
-                              }
-                              onReject={
-                                submission.status === "PENDING"
-                                  ? (sub) => {
-                                      // Open detail dialog for reject (reason will be entered in dialog)
-                                      handleViewDetails(sub);
-                                    }
-                                  : undefined
-                              }
+                              onReviewed={refetchProject}
                             />
                           ))}
                         </div>
@@ -358,10 +320,10 @@ export default function ProjectDetailPage() {
                     </span>
                     <span className="text-sm font-semibold">{progress}%</span>
                   </div>
-                  <Progress value={progress} className="h-2 mb-2" />
+                  <Progress value={Number(progress)} className="h-2 mb-2" />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {project.submissionsCount}/{project.targetSubmissions}{" "}
+                      {project.approvedCount}/{project.targetSubmissions}{" "}
                       submissions
                     </span>
                   </div>
@@ -474,7 +436,7 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
 
-                {project.status === "OPEN" && (
+                {project.status === "OPEN" && !isProjectOwner && (
                   <Link to={`/projects/${project.id}/submit`}>
                     <Button className="w-full" size="lg">
                       <Upload className="mr-2 h-5 w-5" />
@@ -521,8 +483,7 @@ export default function ProjectDetailPage() {
         submission={selectedSubmission}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
-        onApprove={handleApproveSubmission}
-        onReject={handleRejectSubmission}
+        onReviewed={refetchProject}
       />
     </div>
   );

@@ -17,7 +17,7 @@ interface ProjectCardProps {
   id: string;
   title: string;
   imageUrl: string;
-  status: "OPEN" | "COMPLETED" | "closing-soon";
+  status: "OPEN" | "COMPLETED";
   rewardPool: number;
   deadline: number;
   approvedCount: number;

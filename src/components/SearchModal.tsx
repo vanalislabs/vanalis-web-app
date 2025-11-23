@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearch } from "@/hooks/useSearch";
-import { SearchResultItem } from "@/components/SearchResultItem";
+// import { SearchResultItem } from "@/components/SearchResultItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -230,7 +230,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                   <div className="px-4 py-2 text-xs font-medium text-muted-foreground border-b border-gray-200 dark:border-gray-800">
                     Projects
                   </div>
-                  {filteredData.projects.map((project, idx) => {
+                  {/* {filteredData.projects.map((project, idx) => {
                     const flatIndex = idx;
                     return (
                       <div key={project.id}>
@@ -245,7 +245,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                         />
                       </div>
                     );
-                  })}
+                  })} */}
                 </div>
               )}
 
@@ -254,7 +254,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                   <div className="px-4 py-2 text-xs font-medium text-muted-foreground border-b border-gray-200 dark:border-gray-800">
                     Datasets
                   </div>
-                  {filteredData.datasets.map((dataset, idx) => {
+                  {/* {filteredData.datasets.map((dataset, idx) => {
                     const flatIndex = filteredData.projects.length + idx;
                     return (
                       <div key={dataset.id}>
@@ -269,7 +269,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                         />
                       </div>
                     );
-                  })}
+                  })} */}
                 </div>
               )}
 
@@ -278,7 +278,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                   <div className="px-4 py-2 text-xs font-medium text-muted-foreground border-b border-gray-200 dark:border-gray-800">
                     Users
                   </div>
-                  {filteredData.users.map((user, idx) => {
+                  {/* {filteredData.users.map((user, idx) => {
                     const flatIndex = filteredData.projects.length + filteredData.datasets.length + idx;
                     return (
                       <div key={user.address}>
@@ -293,7 +293,7 @@ export function SearchModal({ open, onOpenChange, initialQuery = "" }: SearchMod
                         />
                       </div>
                     );
-                  })}
+                  })} */}
                 </div>
               )}
             </div>
