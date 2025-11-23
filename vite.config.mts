@@ -11,4 +11,20 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "./src/assets"),
     },
   },
+
+  assetsInclude: ['**/*.wasm'],
+
+  optimizeDeps: {
+    exclude: ['@mysten/walrus'], 
+    
+    include: ['dataloader'],
+
+    esbuildOptions: {
+      target: "esnext", 
+    },
+  },
+
+  build: {
+    target: "esnext",
+  }
 });

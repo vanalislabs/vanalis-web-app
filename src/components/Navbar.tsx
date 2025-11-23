@@ -4,15 +4,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ConnectButton, useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
+import { ConnectButton } from "@mysten/dapp-kit";
 import { SearchModal } from "@/components/SearchModal";
-import { SignJWT } from "jose";
 
 export function Navbar() {
   const notificationCount = 3; //todo: remove mock functionality
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const currentAccount = useCurrentAccount();
-  const { mutate: signPersonalMessage } = useSignPersonalMessage();
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
