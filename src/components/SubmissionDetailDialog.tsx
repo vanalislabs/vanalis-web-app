@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle, XCircle, Calendar, User, Loader, Download } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Calendar,
+  User,
+  Loader,
+  Download,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +36,9 @@ import { useGetFullDatasetPath } from "@/hooks/useGetFullDatasetPath";
 import { useGetPrivateKey } from "@/hooks/useGetPrivateKey";
 import { decryptFilePath } from "@/utils/encryption";
 import { useGetFullDataset } from "@/hooks/useGetFullDataset";
+import { useNetworkVariable } from "@/networkConfig";
+import { ReceiptModal } from "./ReceiptModal";
+import { set } from "date-fns";
 
 interface SubmissionDetailDialogProps {
   submission: Submission | null;
@@ -46,6 +56,11 @@ export function SubmissionDetailDialog({
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [decryptedUrl, setDecryptedUrl] = useState<string | null>("");
+
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [txDigest, setTxDigest] = useState("");
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
+  const [review, setReview] = useState("");
 
   const { data: previewBlobId, error: blobError } = useGetPreviewBlobId(
     submission?.id,
@@ -108,14 +123,19 @@ export function SubmissionDetailDialog({
         approved,
       };
 
-      await reviewSubmission(payload);
+      const digest = await reviewSubmission(payload);
+
+      setTxDigest(digest);
 
       if (approved) {
         toast.success("Submission approved!");
+        setReview("Approval");
       } else {
         toast.success("Submission rejected!");
+        setReview("Rejection");
       }
 
+      setShowReceipt(true);
       onReviewed?.();
     },
     [onReviewed, projectIdParam, reviewSubmission, submission],
@@ -146,7 +166,8 @@ export function SubmissionDetailDialog({
       toast.error("Failed to reject submission.");
     }
   };
-  if (!submission || blobError || pathError || keyError) return null;
+  if (!submission || blobError || pathError || keyError || fullDatasetError)
+    return null;
 
   const rewardLabel = `${formattedSui(
     submission.project.rewardPool,
@@ -360,6 +381,18 @@ export function SubmissionDetailDialog({
         onOpenChange={setShowRejectDialog}
         onConfirm={handleRejectConfirm}
         isSubmitting={isSubmitting}
+      />
+
+      <ReceiptModal
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        header={`${review} Success!`}
+        description="Your dataset is stored on Walrus and registered on Sui blockchain."
+        itemName={submission.project.title}
+        type="submission"
+        time={Date.now()}
+        withSui={txDigest}
+        withSmartContract={vanalisPackageId}
       />
     </>
   );

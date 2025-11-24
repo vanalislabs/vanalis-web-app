@@ -485,6 +485,7 @@ export default function ProjectDetailPage() {
         onOpenChange={setIsDetailDialogOpen}
         onReviewed={refetchProject}
       />
+      
     </div>
   );
 }

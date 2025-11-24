@@ -7,6 +7,7 @@ import {
   useSuiClient,
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
+import { SuiTransactionBlockResponse } from "@mysten/sui/client";
 
 export interface CreateProjectFormValues {
   title: string;
@@ -21,7 +22,7 @@ export interface CreateProjectFormValues {
 }
 
 interface UseCreateProjectResult {
-  createProject: (payload: CreateProjectFormValues) => Promise<string>;
+  createProject: (payload: CreateProjectFormValues) => Promise<SuiTransactionBlockResponse>;
   isSubmitting: boolean;
   error: Error | null;
 }
@@ -114,16 +115,17 @@ export function useCreateProject(): UseCreateProjectResult {
         const executionResult = await signAndExecute({ transaction: tx });
         const { digest } = executionResult;
 
-        await suiClient.waitForTransaction({
+        const txData = await suiClient.waitForTransaction({
           digest,
           options: {
             showEffects: true,
             showEvents: true,
             showBalanceChanges: true,
+            showObjectChanges: true,
           },
         });
 
-        return digest;
+        return txData;
       } catch (err) {
         const nextError =
           err instanceof Error

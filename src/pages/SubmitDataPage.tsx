@@ -18,11 +18,19 @@ import {
   SubmissionFormData,
 } from "@/schemas/submissionSchemas"; // <--- ZOD SCHEMA
 import { ProjectEvent } from "@/types/project";
+import { ReceiptModal } from "@/components/ReceiptModal";
+import { useState } from "react";
+import { useNetworkVariable } from "@/networkConfig";
 
 export default function SubmitDataPage() {
   const { id } = useParams();
   const projectId = id ?? "";
   const navigate = useNavigate();
+
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [suiTxDigest, setSuiTxDigest] = useState("");
+  const [walrusBlobId, setWalrusBlobId] = useState("");
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
 
   // 1. Fetch Project Data
   const {
@@ -36,9 +44,7 @@ export default function SubmitDataPage() {
     startWorkflow,
     status,
     isLoading: isSubmitting,
-  } = useSubmitWorkflow(() => {
-    navigate(`/projects/${projectId}`);
-  });
+  } = useSubmitWorkflow();
 
   // 3. Initialize Form (Handles Validation & Input State)
   const {
@@ -51,8 +57,13 @@ export default function SubmitDataPage() {
   });
 
   // 4. Handle Submit
-  const onSubmit = (data: SubmissionFormData) => {
-    startWorkflow(data.fullFile, data.previewFile);
+  const onSubmit = async (data: SubmissionFormData) => {
+    const result = await startWorkflow(data.fullFile, data.previewFile);
+    if (result) {
+      setWalrusBlobId(result.blobId);
+      setSuiTxDigest(result.suiTxDigest);
+      setShowReceipt(true);
+    }
   };
 
   const getProgressValue = () => {
@@ -199,7 +210,11 @@ export default function SubmitDataPage() {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? <Loader className="animate-spin w-7" /> : "Submit Data"}
+                    {isSubmitting ? (
+                      <Loader className="animate-spin w-7" />
+                    ) : (
+                      "Submit Data"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -207,6 +222,20 @@ export default function SubmitDataPage() {
           </Card>
         </form>
       </div>
+      <ReceiptModal
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        header="Submission Uploaded Successfully!"
+        description="Your dataset is stored on Walrus and registered on Sui blockchain."
+        itemName={project.title}
+        type="submission"
+        time={Date.now()}
+        withWalrus={walrusBlobId}
+        withSui={suiTxDigest}
+        withSmartContract={vanalisPackageId}
+        withLink="/my-submissions"
+        buttonLabel="View My Submissions"
+      />
     </div>
   );
 }

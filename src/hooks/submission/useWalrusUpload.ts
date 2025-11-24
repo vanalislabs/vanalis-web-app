@@ -3,13 +3,18 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import { client } from "@/services/client"; 
 import { WalrusFile } from "@mysten/walrus";
 
+interface WalrusUploadResult {
+  blobId: string;
+  txDigest: string;
+}
+
 export function useWalrusUpload() {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const [isUploading, setIsUploading] = useState(false);
   const [step, setStep] = useState<"idle" | "encoding" | "registering" | "uploading" | "certifying">("idle");
 
-  const uploadToWalrus = async (file: File): Promise<string> => {
+  const uploadToWalrus = async (file: File): Promise<WalrusUploadResult> => {
     if (!account) throw new Error("Wallet not connected");
     
     setIsUploading(true);
@@ -51,7 +56,7 @@ export function useWalrusUpload() {
       // Step 4: Certify (Triggers Wallet Sign #2)
       setStep("certifying");
       const certifyTx = flow.certify();
-      await signAndExecute({ transaction: certifyTx });
+      const certifyResult = await signAndExecute({ transaction: certifyTx });
 
       // Step 5: Get Blob ID
       const files = await flow.listFiles();
@@ -60,7 +65,10 @@ export function useWalrusUpload() {
         throw new Error("Upload succeeded but no Blob ID was returned");
       }
       // console.log("Returned blobId:", files[0].blobId);
-      return files[0].blobId;
+      return {
+        blobId: files[0].blobId,
+        txDigest: certifyResult.digest,
+      }
 
     } catch (error) {
       console.error("Walrus SDK Upload Failed:", error);

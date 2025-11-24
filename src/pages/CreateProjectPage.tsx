@@ -24,10 +24,15 @@ import {
   useCreateProject,
   CreateProjectFormValues,
 } from "@/hooks/project/useCreateProject";
+import { ReceiptModal } from "@/components/ReceiptModal";
+import { useNetworkVariable } from "@/networkConfig";
 
 export default function CreateProjectPage() {
   const navigate = useNavigate();
   const { createProject, isSubmitting } = useCreateProject();
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [txDigest, setTxDigest] = useState("");
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId")
 
   const [form, setForm] = useState<CreateProjectFormValues>({
     title: "",
@@ -48,8 +53,11 @@ export default function CreateProjectPage() {
     setIsLoading(true);
 
     try {
-      await createProject(form);
-      navigate("/my-projects");
+      const txResult = await createProject(form);
+      const transactionId = txResult.digest;
+      setTxDigest(transactionId);
+
+      setShowReceipt(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -297,6 +305,19 @@ export default function CreateProjectPage() {
           </Card>
         </form>
       </div>
+      <ReceiptModal
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        header="Project Created!"
+        description="Your project is registered on Sui blockchain."
+        itemName={form.title}
+        type="submission"
+        time={Date.now()}
+        withSui={txDigest}
+        withSmartContract={vanalisPackageId}
+        withLink="/my-projects"
+        buttonLabel="View My Projects"
+      />
     </div>
   );
 }
