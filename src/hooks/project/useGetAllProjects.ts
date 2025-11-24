@@ -34,7 +34,7 @@ export function useGetAllProjects(initial?: Partial<{
   const queryParams = useMemo(
     () => ({
       page: currentPage,
-      perPage,
+      perPage: 30,
       search: debouncedSearch.trim() || undefined,
       status: status || undefined,
     }),
