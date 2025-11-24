@@ -131,7 +131,7 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-          <div className="flex justify-center mt-8">
+          {/* <div className="flex justify-center mt-8">
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled>
                 Previous
@@ -148,8 +148,8 @@ export default function ProjectsPage() {
               <Button variant="outline" size="sm">
                 Next
               </Button>
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
       </div>
     </div>
