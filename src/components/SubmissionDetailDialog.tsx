@@ -6,6 +6,7 @@ import {
   User,
   Loader,
   Download,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -39,6 +40,7 @@ import { useGetFullDataset } from "@/hooks/useGetFullDataset";
 import { useNetworkVariable } from "@/networkConfig";
 import { ReceiptModal } from "./ReceiptModal";
 import { set } from "date-fns";
+import { useWalrusText } from "@/hooks/useWalrusText";
 
 interface SubmissionDetailDialogProps {
   submission: Submission | null;
@@ -78,11 +80,25 @@ export function SubmissionDetailDialog({
   );
 
   const privateKey = privateKeyData?.data?.privateKey;
+
+  // Always fetch both to get the URL with file extension
   const {
-    imageUrl,
+    imageUrl: tempImageUrl,
     isLoading: isLoadingImage,
     error: imageError,
   } = useWalrusImage(previewBlobId);
+
+  const {
+    textUrl: tempTextUrl,
+    isLoading: isLoadingText,
+    error: textError,
+  } = useWalrusText(previewBlobId);
+
+  // Determine file type from actual URL extension
+  const actualUrl = tempImageUrl || tempTextUrl || "";
+  const isText = actualUrl.match(/\.(txt|csv|json|md)$/i) !== null;
+  const imageUrl = !isText ? tempImageUrl : null;
+  const textUrl = isText ? tempTextUrl : null;
 
   const { reviewSubmission, isSubmitting } = useReviewSubmission();
 
@@ -242,25 +258,50 @@ export function SubmissionDetailDialog({
             {/* Preview Dataset */}
             <div>
               <h4 className="text-sm font-semibold mb-3">Preview Dataset</h4>
-              {isLoadingImage && (
+              {(isLoadingImage || isLoadingText) && (
                 <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg">
                   <Loader className="animate-spin w-7" />
                 </div>
               )}
-              {imageError && (
+              {imageError && !isText && (
                 <div className="flex items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                   <p className="text-sm text-red-600 dark:text-red-400">
                     Failed to load preview image
                   </p>
                 </div>
               )}
-              {imageUrl && !isLoadingImage && (
+              {textError && isText && (
+                <div className="flex items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    Failed to load preview file
+                  </p>
+                </div>
+              )}
+              {!isText && imageUrl && (
                 <div className="rounded-lg overflow-hidden border border-border">
                   <img
                     src={imageUrl}
                     alt="Preview dataset"
                     className="w-full h-auto object-contain max-h-96"
                   />
+                </div>
+              )}
+              {isText && textUrl && (
+                <div className="rounded-lg overflow-hidden border border-border p-6 bg-muted/30">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <FileText className="h-12 w-12 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Text file preview
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`${textUrl}`, "_blank")}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Preview
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

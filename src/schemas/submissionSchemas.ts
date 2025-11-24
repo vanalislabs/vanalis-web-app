@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
-const ACCEPTED_TYPES = ["image/png", "image/jpeg", "application/dicom"];
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "application/dicom", "text/csv", "text/plain"];
 
 export const submissionSchema = z.object({
   previewFile: z
