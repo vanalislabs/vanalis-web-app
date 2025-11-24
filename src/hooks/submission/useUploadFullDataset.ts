@@ -27,7 +27,7 @@ export function useUploadFullDataset() {
       return response.data.data;
     },
     onError: (err: AxiosError<ApiError>) => {
-      console.log(err);
+      console.error(err);
       toast.error(
         `${err?.response?.data?.message}: ${err?.response?.data?.error}`,
       );

@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { CheckCircle, XCircle, Calendar, User, Loader } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CheckCircle, XCircle, Calendar, User, Loader, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,10 @@ import { useParams } from "react-router";
 import toast from "react-hot-toast";
 import { ApproveSubmissionDialog } from "@/components/submission/ApproveSubmissionDialog";
 import { RejectSubmissionDialog } from "@/components/submission/RejectSubmissionDialog";
+import { useGetFullDatasetPath } from "@/hooks/useGetFullDatasetPath";
+import { useGetPrivateKey } from "@/hooks/useGetPrivateKey";
+import { decryptFilePath } from "@/utils/encryption";
+import { useGetFullDataset } from "@/hooks/useGetFullDataset";
 
 interface SubmissionDetailDialogProps {
   submission: Submission | null;
@@ -41,19 +45,48 @@ export function SubmissionDetailDialog({
 }: SubmissionDetailDialogProps) {
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [decryptedUrl, setDecryptedUrl] = useState<string | null>("");
 
   const { data: previewBlobId, error: blobError } = useGetPreviewBlobId(
     submission?.id,
   );
-  const { id: projectIdParam } = useParams();
 
-  const { reviewSubmission, isSubmitting } = useReviewSubmission();
+  const { data: fullDatasetPath, error: pathError } = useGetFullDatasetPath(
+    submission?.id,
+  );
 
+  const fullDatasetPublicKey = submission?.fullDatasetPublicKey;
+
+  const isApproved = submission?.status === "APPROVED";
+  const { data: privateKeyData, error: keyError } = useGetPrivateKey(
+    isApproved ? fullDatasetPublicKey || "" : "",
+  );
+
+  const privateKey = privateKeyData?.data?.privateKey;
   const {
     imageUrl,
     isLoading: isLoadingImage,
     error: imageError,
   } = useWalrusImage(previewBlobId);
+
+  const { reviewSubmission, isSubmitting } = useReviewSubmission();
+
+  const { data: fullDatasetData, error: fullDatasetError } = useGetFullDataset(
+    decryptedUrl || "",
+  );
+  const fullDataset = fullDatasetData?.data;
+
+  useEffect(() => {
+    const loadEncryptedData = async () => {
+      if (fullDatasetPath && privateKey) {
+        const result = await decryptFilePath(fullDatasetPath, privateKey);
+        setDecryptedUrl(result);
+      }
+    };
+    loadEncryptedData();
+  }, [fullDatasetPath, privateKey]);
+
+  const { id: projectIdParam } = useParams();
 
   const handleApproveClick = () => {
     setShowApproveConfirm(true);
@@ -113,7 +146,7 @@ export function SubmissionDetailDialog({
       toast.error("Failed to reject submission.");
     }
   };
-  if (!submission || blobError) return null;
+  if (!submission || blobError || pathError || keyError) return null;
 
   const rewardLabel = `${formattedSui(
     submission.project.rewardPool,
@@ -212,29 +245,49 @@ export function SubmissionDetailDialog({
             </div>
 
             {/* Full Dataset (if approved) */}
-            {/* {submission.status === "APPROVED" && submission.fullDatasetUrl && (
+            {submission.status === "APPROVED" && (
               <div>
                 <h4 className="text-sm font-semibold mb-3">Full Dataset</h4>
+
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-700 dark:text-green-400">Full dataset unlocked</p>
-                      {submission.fullDatasetSize && (
-                        <p className="text-xs text-muted-foreground mt-1">Size: {submission.fullDatasetSize}</p>
-                      )}
+                      <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                        Full dataset unlocked
+                      </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(submission.fullDatasetUrl, "_blank")}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
+
+                    {fullDataset ? (
+                      <a
+                        href={fullDataset}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex"
+                      >
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button variant="outline" size="sm" disabled>
+                        {privateKey ? (
+                          <>
+                            <Loader className="h-3 w-3 mr-2 animate-spin" />
+                            Decrypting...
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Key Missing
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
-            )} */}
+            )}
 
             {/* Reward Info */}
             <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">

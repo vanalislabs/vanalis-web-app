@@ -48,10 +48,10 @@ export const encryptFilePath = async (filePathKey: string, publicKey: string): P
   }
 };
 
-export const decryptFilePath = (
+export const decryptFilePath = async (
   ciphertextBase64: string,
   privateKeyHex: string
-): string | null => {
+): Promise<string | null> => {
   try {
     // 1. Decode inputs
     const fullPayload = decodeBase64(ciphertextBase64);
