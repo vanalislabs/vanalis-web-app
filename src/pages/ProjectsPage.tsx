@@ -14,25 +14,34 @@ import { Badge } from "@/components/ui/badge";
 import { useGetAllProjects } from "@/hooks/project/useGetAllProjects";
 import Loading from "@/loading";
 import { ProjectStatus } from "@/constants/projectStatus";
+import { PaginationControl } from "@/components/PaginationControl";
 
 export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("ALL");
-  const { data, isLoading, error, handleSearchChange, handleStatusChange } =
-    useGetAllProjects();
+  const {
+    data,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    handleSearchChange,
+    handleStatusChange,
+    handlePageChange,
+  } = useGetAllProjects();
 
-  if(isLoading){
-    return <Loading />
+  if (isLoading) {
+    return <Loading />;
   }
 
   if (error) {
-		return (
-			<div className="flex items-center justify-center py-8">
-				<p className="text-red-500">Failed to load projects</p>
-			</div>
-		);
-	}
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-red-500">Failed to load projects</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -54,13 +63,15 @@ export default function ProjectsPage() {
             </div>
 
             <div className="flex gap-2 items-center flex-wrap">
-              <Select value={status} defaultValue="ALL" onValueChange={(e: ProjectStatus  ) => {
-                setStatus(e);
-                handleStatusChange(e);
-                }}>
-                <SelectTrigger
-                  className="w-40"
-                >
+              <Select
+                value={status}
+                defaultValue="ALL"
+                onValueChange={(e: ProjectStatus) => {
+                  setStatus(e);
+                  handleStatusChange(e);
+                }}
+              >
+                <SelectTrigger className="w-40">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,10 +110,7 @@ export default function ProjectsPage() {
                 </Button>
               </div>
 
-              <Button
-                variant="outline"
-                size="icon"
-              >
+              <Button variant="outline" size="icon">
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -117,7 +125,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow- p-6">
         <div className="max-w-7xl mx-auto">
           <div
             className={
@@ -131,25 +139,13 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-          <div className="flex justify-center mt-8">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="default" size="sm">
-                1
-              </Button>
-              <Button variant="outline" size="sm">
-                2
-              </Button>
-              <Button variant="outline" size="sm">
-                3
-              </Button>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
-            </div>
-          </div>
+            <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            className="mt-8"
+          />
+
         </div>
       </div>
     </div>

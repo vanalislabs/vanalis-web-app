@@ -16,6 +16,6 @@ export const projectStatus = {
   COMPLETED: {
     label: "Completed",
     variant: "outline" as const,
-    className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+    className: "bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-400",
   },
 } as const;

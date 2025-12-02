@@ -40,7 +40,7 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const progress = (approvedCount / targetSubmissions) * 100;
 
-  if(!rewardPool || !deadline){
+  if(rewardPool === undefined || deadline === null){
     return null;
   }
 

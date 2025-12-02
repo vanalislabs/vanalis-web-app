@@ -73,7 +73,6 @@ export function useReviewSubmission(): UseReviewSubmissionResult {
           digest,
           options: {
             showEffects: true,
-            // Only request what you actually need to reduce load
             showEvents: true, 
           },
         });

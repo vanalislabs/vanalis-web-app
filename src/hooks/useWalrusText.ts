@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { client } from "@/services/client";
 
-export function useWalrusImage(blobId: string | undefined | null) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+export function useWalrusText(blobId: string | undefined | null) {
+  const [textUrl, setTextUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -13,7 +13,7 @@ export function useWalrusImage(blobId: string | undefined | null) {
 
     async function fetchImage() {
       if (!blobId) {
-        setImageUrl(null);
+        setTextUrl(null);
         setIsLoading(false);
         setError(null);
         return;
@@ -31,7 +31,7 @@ export function useWalrusImage(blobId: string | undefined | null) {
         // const fileUrl = URL.createObjectURL(fileBlob);
         // setImageUrl(fileUrl);
         const full_url = `${base_url}/v1/blobs/by-quilt-id/${blobId}/${identifier}`;
-        setImageUrl(full_url);
+        setTextUrl(full_url);
       } catch (err) {
         setError(
           err instanceof Error ? err : new Error("Failed to fetch image"),
@@ -50,5 +50,5 @@ export function useWalrusImage(blobId: string | undefined | null) {
     };
   }, [blobId]);
 
-  return { imageUrl, isLoading, error };
+  return { textUrl, isLoading, error };
 }

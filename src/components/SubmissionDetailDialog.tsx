@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle, XCircle, Calendar, User, Loader, Download } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Calendar,
+  User,
+  Loader,
+  Download,
+  FileText,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +37,10 @@ import { useGetFullDatasetPath } from "@/hooks/useGetFullDatasetPath";
 import { useGetPrivateKey } from "@/hooks/useGetPrivateKey";
 import { decryptFilePath } from "@/utils/encryption";
 import { useGetFullDataset } from "@/hooks/useGetFullDataset";
+import { useNetworkVariable } from "@/networkConfig";
+import { ReceiptModal } from "./ReceiptModal";
+import { set } from "date-fns";
+import { useWalrusText } from "@/hooks/useWalrusText";
 
 interface SubmissionDetailDialogProps {
   submission: Submission | null;
@@ -47,6 +59,11 @@ export function SubmissionDetailDialog({
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [decryptedUrl, setDecryptedUrl] = useState<string | null>("");
 
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [txDigest, setTxDigest] = useState("");
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
+  const [review, setReview] = useState("");
+
   const { data: previewBlobId, error: blobError } = useGetPreviewBlobId(
     submission?.id,
   );
@@ -63,11 +80,25 @@ export function SubmissionDetailDialog({
   );
 
   const privateKey = privateKeyData?.data?.privateKey;
+
+  // Always fetch both to get the URL with file extension
   const {
-    imageUrl,
+    imageUrl: tempImageUrl,
     isLoading: isLoadingImage,
     error: imageError,
   } = useWalrusImage(previewBlobId);
+
+  const {
+    textUrl: tempTextUrl,
+    isLoading: isLoadingText,
+    error: textError,
+  } = useWalrusText(previewBlobId);
+
+  // Determine file type from actual URL extension
+  const actualUrl = tempImageUrl || tempTextUrl || "";
+  const isText = actualUrl.match(/\.(txt|csv|json|md)$/i) !== null;
+  const imageUrl = !isText ? tempImageUrl : null;
+  const textUrl = isText ? tempTextUrl : null;
 
   const { reviewSubmission, isSubmitting } = useReviewSubmission();
 
@@ -108,14 +139,19 @@ export function SubmissionDetailDialog({
         approved,
       };
 
-      await reviewSubmission(payload);
+      const digest = await reviewSubmission(payload);
+
+      setTxDigest(digest);
 
       if (approved) {
         toast.success("Submission approved!");
+        setReview("Approval");
       } else {
         toast.success("Submission rejected!");
+        setReview("Rejection");
       }
 
+      setShowReceipt(true);
       onReviewed?.();
     },
     [onReviewed, projectIdParam, reviewSubmission, submission],
@@ -146,7 +182,8 @@ export function SubmissionDetailDialog({
       toast.error("Failed to reject submission.");
     }
   };
-  if (!submission || blobError || pathError || keyError) return null;
+  if (!submission || blobError || pathError || keyError || fullDatasetError)
+    return null;
 
   const rewardLabel = `${formattedSui(
     submission.project.rewardPool,
@@ -221,25 +258,50 @@ export function SubmissionDetailDialog({
             {/* Preview Dataset */}
             <div>
               <h4 className="text-sm font-semibold mb-3">Preview Dataset</h4>
-              {isLoadingImage && (
+              {(isLoadingImage || isLoadingText) && (
                 <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg">
                   <Loader className="animate-spin w-7" />
                 </div>
               )}
-              {imageError && (
+              {imageError && !isText && (
                 <div className="flex items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                   <p className="text-sm text-red-600 dark:text-red-400">
                     Failed to load preview image
                   </p>
                 </div>
               )}
-              {imageUrl && !isLoadingImage && (
+              {textError && isText && (
+                <div className="flex items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    Failed to load preview file
+                  </p>
+                </div>
+              )}
+              {!isText && imageUrl && (
                 <div className="rounded-lg overflow-hidden border border-border">
                   <img
                     src={imageUrl}
                     alt="Preview dataset"
                     className="w-full h-auto object-contain max-h-96"
                   />
+                </div>
+              )}
+              {isText && textUrl && (
+                <div className="rounded-lg overflow-hidden border border-border p-6 bg-muted/30">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <FileText className="h-12 w-12 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Text file preview
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`${textUrl}`, "_blank")}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Preview
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -360,6 +422,18 @@ export function SubmissionDetailDialog({
         onOpenChange={setShowRejectDialog}
         onConfirm={handleRejectConfirm}
         isSubmitting={isSubmitting}
+      />
+
+      <ReceiptModal
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        header={`${review} Success!`}
+        description="Your dataset is stored on Walrus and registered on Sui blockchain."
+        itemName={submission.project.title}
+        type="submission"
+        time={Date.now()}
+        withSui={txDigest}
+        withSmartContract={vanalisPackageId}
       />
     </>
   );

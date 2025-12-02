@@ -16,6 +16,8 @@ import {
   useReviewSubmission,
 } from "@/hooks/submission/useReviewSubmission";
 import toast from "react-hot-toast";
+import { useNetworkVariable } from "@/networkConfig";
+import { ReceiptModal } from "./ReceiptModal";
 
 interface SubmissionCardProps {
   submissionId: string;
@@ -37,6 +39,10 @@ export function SubmissionCard({
   const { reviewSubmission, isSubmitting } = useReviewSubmission();
 
   const submission = data?.data as Submission | undefined;
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [txDigest, setTxDigest] = useState("");
+  const vanalisPackageId = useNetworkVariable("vanalisPackageId");
+  const [review, setReview] = useState("");
 
   if (!submission || error) {
     return null;
@@ -71,15 +77,20 @@ export function SubmissionCard({
         approved,
       };
 
-      await reviewSubmission(payload);
+      const digest = await reviewSubmission(payload);
       await refetch();
+
+      setTxDigest(digest);
 
       if (approved) {
         toast.success("Submission approved!");
+        setReview("Approval");
       } else {
         toast.success("Submission rejected!");
+        setReview("Rejection");
       }
 
+      setShowReceipt(true);
       onReviewed?.();
     } catch (err) {
       console.error(err);
@@ -204,6 +215,18 @@ export function SubmissionCard({
         onOpenChange={setShowRejectDialog}
         onConfirm={confirmReject}
         isSubmitting={isRejectPending}
+      />
+
+      <ReceiptModal
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        header={`${review} Success!`}
+        description="Your dataset is stored on Walrus and registered on Sui blockchain."
+        itemName={submission.project.title}
+        type="submission"
+        time={Date.now()}
+        withSui={txDigest}
+        withSmartContract={vanalisPackageId}
       />
     </Card>
   );

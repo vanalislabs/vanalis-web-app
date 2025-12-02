@@ -41,19 +41,17 @@ export default function ProjectDetailPage() {
   const projectId = id ?? "";
 
   const account = useCurrentAccount();
-  
+
   const {
     data,
     isLoading,
     error,
     refetch: refetchProject,
   } = useGetProjectById(projectId);
-  
+
   const project = (data?.data as ProjectEvent) ?? undefined;
-  const isProjectOwner = 
-    account?.address && 
-    project?.curator && 
-    account.address === project.curator;
+  const isProjectOwner =
+    account?.address && project?.curator && account.address === project.curator;
 
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
@@ -139,7 +137,8 @@ export default function ProjectDetailPage() {
         ),
       ).toFixed(2)
     : 0;
-  if (!project.rewardPool || !project.deadline) {
+
+  if (project.deadline === undefined || project.deadline === null) {
     return null;
   }
 

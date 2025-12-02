@@ -49,12 +49,12 @@ export function useSubmitWorkflow(onSuccess?: () => void) {
 
       // Step 4: Upload Preview to Walrus
       setStatus("uploading_walrus");
-      const blobId = await uploadToWalrus(previewFile);
+      const {blobId, txDigest: walrusTxDigest} = await uploadToWalrus(previewFile);
       // console.log(blobId);
 
       // Step 5: Submit to Sui Smart Contract
       setStatus("submitting_chain");
-      const res = await submitToContract(
+      const suiTxResult = await submitToContract(
         blobId,
         cipherText,
         keyData.data.publicKey,
@@ -64,6 +64,12 @@ export function useSubmitWorkflow(onSuccess?: () => void) {
       setStatus("success");
       toast.success("Dataset successfully submitted to chain!");
       onSuccess?.();
+      return {
+        blobId,
+        walrusTxDigest,
+        suiTxDigest: suiTxResult.digest
+      };
+
     } catch (error) {
       console.error("Workflow failed:", error);
       setStatus("error");

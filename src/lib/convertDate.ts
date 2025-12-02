@@ -17,3 +17,19 @@ export function getDate(value: number) {
   return date.toLocaleDateString("en-US");
 
 }
+
+export function getDateTime(input: number | string | Date): string {
+  const d = typeof input === "number" || typeof input === "string" ? new Date(input) : input;
+  if (isNaN(d.getTime())) return "";
+  // Format: "23 Nov 2025, 14:05:09 GMT+7" (locale-aware)
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZoneName: "short",
+  }).format(d);
+}

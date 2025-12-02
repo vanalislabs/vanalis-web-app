@@ -9,9 +9,10 @@ import { submissionStatus } from "@/constants/submissionStatus";
 import { getDate } from "@/lib/convertDate";
 import Loading from "@/loading";
 import { Submission } from "@/types/submission";
+import { PaginationControl } from "@/components/PaginationControl";
 
 export default function MySubmissionsPage() {
-  const { data, isLoading, error } = useGetMySubmissions();
+  const { data, isLoading, error, currentPage, totalPages, handlePageChange} = useGetMySubmissions();
   const submissions = (data as Submission[]) ?? [];
 
   if (isLoading) {
@@ -272,6 +273,12 @@ export default function MySubmissionsPage() {
             </div>
           </TabsContent>
         </Tabs>
+        <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            className="mt-8"
+          />
       </div>
     </div>
   );
