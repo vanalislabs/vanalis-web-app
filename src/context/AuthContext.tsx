@@ -32,8 +32,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       setAccessToken(null);
       setRefreshToken(null);
       setUser(null);
-      // Clear the query cache for authUser
-      queryClient.removeQueries({ queryKey: ["authUser"] });
+      // Clear all query cache
+      queryClient.clear();
     }
 
     // Update the ref with current status
@@ -114,8 +114,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         if (response.data) {
           setAccessToken(response.data.accessToken);
           setRefreshToken(response.data.refreshToken);
-          // Invalidate and refetch user profile after successful login
-          queryClient.invalidateQueries({ queryKey: ["authUser"] });
+          // Invalidate and refetch all active queries after successful login
+          queryClient.invalidateQueries();
           refetchAuthUser();
         }
       } catch (error) {

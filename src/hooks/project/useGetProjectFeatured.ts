@@ -11,7 +11,7 @@ export function useGetProjectFeatured() {
     error,
     isFetching,
   } = useQuery<PaginatedApiResponse<ProjectEvent[]>>({
-    queryKey: ["projects"],
+    queryKey: ["featured-projects"],
     queryFn: async () => {
       const res = await api.get(`/project/featured`);
       return res.data;

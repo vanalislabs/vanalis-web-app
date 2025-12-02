@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
-import type { PaginatedApiResponse, PaginationQueryParams } from "@/types/api";
+import type { PaginatedApiResponse } from "@/types/api";
 import type { ProjectEvent } from "@/types/project";
 import { useEffect, useMemo, useState } from "react";
 import { PROJECT_STATUS, ProjectStatus } from "@/constants/projectStatus";
@@ -12,10 +12,10 @@ export function useGetAllProjects(initial?: Partial<{
     page: number;
 }>) {
   const [search, setSearch] = useState(initial?.search ?? "");
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [debouncedSearch, setDebouncedSearch] = useState("search");
   const [status, setStatus] = useState<ProjectStatus>(initial?.status ?? PROJECT_STATUS.ALL);
 
-  const [perPage, setPerPage] = useState(initial?.perPage ?? 10);
+  const [perPage, setPerPage] = useState(initial?.perPage ?? 9);
   const [currentPage, setCurrentPage] = useState(initial?.page ?? 1);
 
   useEffect(() => {
@@ -27,16 +27,16 @@ export function useGetAllProjects(initial?: Partial<{
   }, [search]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset page when params change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [perPage]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [perPage]);
 
   const queryParams = useMemo(
     () => ({
       page: currentPage,
-      perPage: 30,
+      perPage,
       search: debouncedSearch.trim() || undefined,
-      status: status || undefined,
+      status: status === "ALL" ? undefined : status,
     }),
     [currentPage, perPage, debouncedSearch, status],
   );

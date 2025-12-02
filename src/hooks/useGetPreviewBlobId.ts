@@ -4,7 +4,7 @@ import { useSuiClient } from "@mysten/dapp-kit";
 export function useGetPreviewBlobId(objectId: string | undefined) {
   const client = useSuiClient();
   return useQuery({
-    queryKey: ["preview-blob", objectId],
+    queryKey: ["preview-blob-id", objectId],
     queryFn: async () => {
       if (!objectId) return null;
 

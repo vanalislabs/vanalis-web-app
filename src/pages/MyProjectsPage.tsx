@@ -2,26 +2,19 @@ import { Link } from "react-router";
 import { Plus, Settings, Eye, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
 import Loading from "@/loading";
-import { projectStatus, ProjectStatus } from "@/constants/projectStatus";
 import { useGetMyProjects } from "@/hooks/project/useGetMyProjects";
 import MyProjectCard from "@/components/MyProjectCard";
+import { PaginationControl } from "@/components/PaginationControl";
 
 export default function MyProjectsPage() {
   const {
     data: projects,
     isLoading,
     error,
-    handleStatusChange,
+    currentPage,
+    totalPages,
+    handlePageChange,
   } = useGetMyProjects();
 
   if (isLoading) {
@@ -55,7 +48,6 @@ export default function MyProjectsPage() {
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          
           <TabsList>
             <TabsTrigger value="all" data-testid="tab-all">
               All ({projects.length})
@@ -69,10 +61,10 @@ export default function MyProjectsPage() {
             </TabsTrigger>
           </TabsList>
           {projects.length === 0 && (
-                <div className="flex items-center justify-center py-16">
-                  <p className="text-black">Project is empty</p>
-                </div>
-              )}
+            <div className="flex items-center justify-center py-16">
+              <p className="text-black">Project is empty</p>
+            </div>
+          )}
 
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -102,6 +94,12 @@ export default function MyProjectsPage() {
             </div>
           </TabsContent>
         </Tabs>
+        <PaginationControl
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          className="mt-8"
+        />
       </div>
     </div>
   );
