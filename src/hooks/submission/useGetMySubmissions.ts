@@ -19,7 +19,7 @@ export function useGetMySubmissions(
     initial?.status ?? SUBMISSION_STATUS.ALL,
   );
 
-  const [perPage, setPerPage] = useState(initial?.perPage ?? 10);
+  const [perPage, setPerPage] = useState(initial?.perPage ?? 9);
   const [currentPage, setCurrentPage] = useState(initial?.page ?? 1);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset page when params change
@@ -42,7 +42,7 @@ export function useGetMySubmissions(
     error,
     isFetching,
   } = useQuery<PaginatedApiResponse<Submission[]>>({
-    queryKey: ["submissions", queryParams],
+    queryKey: ["my-submissions", queryParams],
     queryFn: async () => {
       const res = await api.get(`/project/my-submissions`, {
         params: queryParams,
