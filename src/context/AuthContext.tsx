@@ -3,9 +3,10 @@ import { QueryObserverResult, useQuery, useQueryClient } from "@tanstack/react-q
 import { useUserStore } from "@/stores/userStore";
 import { fetchAuthUser, fetchLogin, fetchTextToSign } from "@/services/api/authApi";
 import { useCurrentAccount, useCurrentWallet, useDisconnectWallet, useSignPersonalMessage } from "@mysten/dapp-kit";
-import { SignJWT } from "jose";
+import { SignJWT, decodeJwt } from "jose";
 import { toast } from "sonner";
 import { AuthUser } from "@/types/user";
+import { refreshTokenIfPossible } from "@/lib/axios";
 
 interface AuthContextProps {
   refetchAuthUser: () => Promise<QueryObserverResult<AuthUser, Error>>;
@@ -23,6 +24,55 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const queryClient = useQueryClient();
   const prevConnectionStatusRef = useRef<string | undefined>(connectionStatus);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const checkAndRefresh = async () => {
+      const { accessToken, refreshToken, logout } = useUserStore.getState();
+
+      if(!refreshToken) return
+
+      let shouldRefresh = false;
+
+      if(!accessToken) {
+        shouldRefresh = true;
+      } else {
+        try {
+          const decoded = decodeJwt(accessToken);
+          // If not expire, or if expire is in the past (or within 30s buffer), refresh
+          const currentTime = Date.now() / 1000
+          if(!decoded.exp || decoded.exp < currentTime + 30){
+            shouldRefresh = true;
+          }
+        } catch (e) {
+          // If Token is malformed, also refresh
+          shouldRefresh = true;
+        }
+      }
+
+      if(shouldRefresh){
+        // We await here to ensure the refresh completes before other queries run 
+        // if this was running in a guard, but inside useEffect it just prevents overlap
+        const ok = await refreshTokenIfPossible();
+        if(!ok && mounted) {
+          logout()
+        }
+      }
+    };
+
+    checkAndRefresh();
+
+    const onFocus = () => {
+      checkAndRefresh();
+    }
+
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      mounted = false;
+    };
+  }, [])
+
   // Reset auth state when connection status changes from connected to disconnected
   useEffect(() => {
     const prevStatus = prevConnectionStatusRef.current;
@@ -39,7 +89,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     // Update the ref with current status
     prevConnectionStatusRef.current = currentStatus;
   }, [connectionStatus, setAccessToken, setRefreshToken, setUser, queryClient]);
-
+  
   const { data: userProfile, refetch: refetchAuthUser } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {

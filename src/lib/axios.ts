@@ -96,4 +96,27 @@ axiosInstanceWithAuth.interceptors.response.use(
   }
 );
 
+export async function refreshTokenIfPossible(): Promise<boolean> {
+  const refreshToken = useUserStore.getState().refreshToken;
+  if (!refreshToken) return false;
+
+  try {
+    const response = await axiosInstance.post(API_ROUTES.AUTH.REFRESH_TOKEN, {
+      refreshToken,
+    });
+    const newAccessToken = response?.data?.data?.accessToken;
+    const newRefreshToken = response?.data?.data?.refreshToken;
+    if (!newAccessToken || !newRefreshToken) return false;
+
+    useUserStore.getState().setAccessToken(newAccessToken);
+    useUserStore.getState().setRefreshToken(newRefreshToken);
+    axiosInstanceWithAuth.defaults.headers.common["Authorization"] =
+      "Bearer " + newAccessToken;
+
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 export { axiosInstanceWithAuth, axiosInstance };
