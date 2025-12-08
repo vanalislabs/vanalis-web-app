@@ -54,7 +54,7 @@ export function SubmissionCard({
   const config = submissionStatus[statusKey] ?? submissionStatus.PENDING;
   const StatusIcon = config.icon;
   const rewardLabel = `${formattedSui(
-    submission.project.rewardPool,
+    submission.project.totalRewardPool,
     submission.project.targetSubmissions,
   )} SUI`;
 
@@ -146,7 +146,9 @@ export function SubmissionCard({
               <span>Preview: {submission.previewDatasetSize}</span>
             )} */}
           </div>
-          <div className="font-semibold text-primary">{rewardLabel}</div>
+          {submission.status === "APPROVED" && (
+            <div className="font-semibold text-primary">{rewardLabel}</div>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border">
