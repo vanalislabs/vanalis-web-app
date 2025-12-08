@@ -14,12 +14,11 @@ import { Progress } from "@/components/ui/progress";
 import { useGetProjectById } from "@/hooks/project/useGetProjectById";
 import { useSubmitWorkflow } from "@/hooks/submission/useSubmitWorkflow"; // <--- ORCHESTRATOR
 import {
-  submissionSchema,
+  createSubmissionSchema,
   SubmissionFormData,
 } from "@/schemas/submissionSchemas"; // <--- ZOD SCHEMA
-import { ProjectEvent } from "@/types/project";
 import { ReceiptModal } from "@/components/ReceiptModal";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNetworkVariable } from "@/networkConfig";
 
 export default function SubmitDataPage() {
@@ -46,13 +45,23 @@ export default function SubmitDataPage() {
     isLoading: isSubmitting,
   } = useSubmitWorkflow();
 
+  const schema = useMemo(() => {
+    // Fallback while loading to prevent crashes
+    if (!projectData) {
+       // Return a "deny all" or "basic" schema while loading
+       return createSubmissionSchema("txt", 1); 
+    }
+    
+    return createSubmissionSchema(projectData.dataType);
+  }, [projectData]);
+
   // 3. Initialize Form (Handles Validation & Input State)
   const {
     handleSubmit,
     control,
     formState: { errors },
   } = useForm<SubmissionFormData>({
-    resolver: zodResolver(submissionSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
   });
 
@@ -112,26 +121,18 @@ export default function SubmitDataPage() {
   const currentLabel = getStatusLabel();
 
   if (isLoading) return <Loading />;
-  if (projectError || !projectData?.data) {
+  if (projectError || !projectData) {
     return (
       <div className="text-center py-8 text-red-500">Project not found</div>
     );
   }
-  const project = projectData.data as ProjectEvent | undefined;
 
-  if (!project) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <p className="text-red-500">Project not found</p>
-      </div>
-    );
-  }
   return (
     <div className="flex flex-col p-6">
       <div className="max-w-4xl mx-auto w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Submit Data</h1>
-          <p className="text-muted-foreground">Contribute to {project.title}</p>
+          <p className="text-muted-foreground">Contribute to {projectData.title}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -141,7 +142,7 @@ export default function SubmitDataPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {project.submissionRequirements.map((req, index) => (
+                {projectData.submissionRequirements.map((req, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span className="text-sm">{req}</span>
@@ -161,7 +162,7 @@ export default function SubmitDataPage() {
                 control={control}
                 label="Preview Dataset *"
                 description="Representative sample data (visible to curator)"
-                accept="image/*,.dcm"
+                accept={projectData.dataType}
               />
 
               <FileUploadField
@@ -169,7 +170,7 @@ export default function SubmitDataPage() {
                 control={control}
                 label="Full Dataset *"
                 description="Complete data (encrypted & locked until approval)"
-                accept="image/*,.dcm"
+                accept={projectData.dataType}
               />
             </CardContent>
           </Card>
@@ -227,7 +228,7 @@ export default function SubmitDataPage() {
         onOpenChange={setShowReceipt}
         header="Submission Uploaded Successfully!"
         description="Your dataset is stored on Walrus and registered on Sui blockchain."
-        itemName={project.title}
+        itemName={projectData.title}
         type="submission"
         time={Date.now()}
         withWalrus={walrusBlobId}

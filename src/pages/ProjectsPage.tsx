@@ -115,7 +115,6 @@ export default function ProjectsPage() {
               </Button>
             </div>
           </div>
-
           <div className="flex gap-2 mt-4">
             <Badge variant="secondary">All Projects (6)</Badge>
             <Badge variant="outline">Open (3)</Badge>
@@ -125,7 +124,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow- p-6">
+      <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto">
           <div
             className={
@@ -139,13 +138,12 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-            <PaginationControl
+          <PaginationControl
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             className="mt-8"
           />
-
         </div>
       </div>
     </div>

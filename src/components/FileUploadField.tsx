@@ -81,7 +81,7 @@ export function FileUploadField({
           type="file"
           id={name}
           className="hidden"
-          accept={accept}
+          accept={`.${accept}`}
           onChange={handleFileChange}
         />
 
@@ -124,7 +124,7 @@ export function FileUploadField({
                 Click to upload or drag and drop
               </p>
               <p className="text-xs text-muted-foreground">
-                {accept ? accept.replace(/,/g, ", ") : "Any file"}
+                {accept ? accept.replace(/,/g, ", ").toUpperCase() + " File" : "Any file"} 
               </p>
             </div>
           </div>
