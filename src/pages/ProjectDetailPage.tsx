@@ -31,7 +31,6 @@ import avatarImage from "@assets/dummy/Tech_professional_avatar_headshot_e62e735
 import { useGetProjectById } from "@/hooks/project/useGetProjectById";
 import Loading from "@/loading";
 import { projectStatus } from "@/constants/projectStatus";
-import { ProjectEvent } from "@/types/project";
 import { getDate, getDaysRemaining } from "@/lib/convertDate";
 import { formattedSui } from "@/lib/convertDecimals";
 import { useCurrentAccount } from "@mysten/dapp-kit";
@@ -43,15 +42,14 @@ export default function ProjectDetailPage() {
   const account = useCurrentAccount();
 
   const {
-    data,
+    data: projectData,
     isLoading,
     error,
     refetch: refetchProject,
   } = useGetProjectById(projectId);
 
-  const project = (data?.data as ProjectEvent) ?? undefined;
   const isProjectOwner =
-    account?.address && project?.curator && account.address === project.curator;
+    account?.address && projectData?.curator && account.address === projectData.curator;
 
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
@@ -64,7 +62,7 @@ export default function ProjectDetailPage() {
   const normalizeStatus = (status: Submission["status"]) =>
     status?.toLowerCase() as "pending" | "approved" | "rejected";
 
-  const projectSubmissions = project?.submissions ?? [];
+  const projectSubmissions = projectData?.submissions ?? [];
 
   const filteredSubmissions = projectSubmissions.filter((sub) => {
     if (statusFilter === "all") return true;
@@ -115,7 +113,7 @@ export default function ProjectDetailPage() {
     );
   }
 
-  if (!project) {
+  if (!projectData) {
     return (
       <div className="flex items-center justify-center py-8">
         <p className="text-red-500">Project not found</p>
@@ -123,22 +121,22 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const statusKey = project.status as keyof typeof projectStatus;
+  const statusKey = projectData.status as keyof typeof projectStatus;
   const config = projectStatus[statusKey] ?? {
     label: "Unknown",
     className: "bg-gray-400",
   };
 
-  const progress = project.targetSubmissions
+  const progress = projectData.targetSubmissions
     ? Number(
         Math.min(
           100,
-          (project.approvedCount / project.targetSubmissions) * 100,
+          (projectData.approvedCount / projectData.targetSubmissions) * 100,
         ),
       ).toFixed(2)
     : 0;
 
-  if (project.deadline === undefined || project.deadline === null) {
+  if (projectData.deadline === undefined || projectData.deadline === null) {
     return null;
   }
 
@@ -149,8 +147,8 @@ export default function ProjectDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="aspect-video rounded-lg overflow-hidden">
               <img
-                src={project.imageUrl}
-                alt={project.title}
+                src={projectData.imageUrl}
+                alt={projectData.title}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -159,12 +157,12 @@ export default function ProjectDetailPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold">{project.title}</h1>
+                    <h1 className="text-3xl font-bold">{projectData.title}</h1>
                     <Badge className={config.className}>{config.label}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <Badge variant="outline">{project.category}</Badge>
-                    <span>Created {getDate(project.createdAt)}</span>
+                    <Badge variant="outline">{projectData.category}</Badge>
+                    <span>Created {getDate(projectData.createdAt)}</span>
                   </div>
                 </div>
               </div>
@@ -187,7 +185,7 @@ export default function ProjectDetailPage() {
                       Project Description
                     </h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      {project.description}
+                      {projectData.description}
                     </p>
                   </div>
                 </TabsContent>
@@ -197,7 +195,7 @@ export default function ProjectDetailPage() {
                     Submission Requirements
                   </h3>
                   <ul className="space-y-3">
-                    {project.submissionRequirements.map((req, index) => (
+                    {projectData.submissionRequirements.map((req, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">{req}</span>
@@ -213,12 +211,12 @@ export default function ProjectDetailPage() {
                       user="alice.sui"
                       userAvatar={avatarImage}
                       action="submitted to"
-                      target={project.title}
+                      target={projectData.title}
                       timestamp="2 hours ago"
                     />
                     <ActivityFeedItem
                       type="verification"
-                      user={project.curator}
+                      user={projectData.curator}
                       action="verified"
                       target="New submission"
                       timestamp="3 hours ago"
@@ -227,14 +225,14 @@ export default function ProjectDetailPage() {
                       type="submission"
                       user="bob.sui"
                       action="submitted to"
-                      target={project.title}
+                      target={projectData.title}
                       timestamp="5 hours ago"
                     />
                     <ActivityFeedItem
                       type="reward"
                       user="carol.sui"
                       action="earned reward from"
-                      target={project.title}
+                      target={projectData.title}
                       timestamp="8 hours ago"
                       amount="5 SUI"
                     />
@@ -322,7 +320,7 @@ export default function ProjectDetailPage() {
                   <Progress value={Number(progress)} className="h-2 mb-2" />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {project.approvedCount}/{project.targetSubmissions}{" "}
+                      {projectData.approvedCount}/{projectData.targetSubmissions}{" "}
                       submissions
                     </span>
                   </div>
@@ -338,7 +336,7 @@ export default function ProjectDetailPage() {
                         Total Reward Pool
                       </div>
                       <div className="font-semibold">
-                        {formattedSui(project.rewardPool)} SUI
+                        {formattedSui(projectData.rewardPool)} SUI
                       </div>
                     </div>
                   </div>
@@ -353,8 +351,8 @@ export default function ProjectDetailPage() {
                       </div>
                       <div className="font-semibold">
                         {formattedSui(
-                          project.rewardPool,
-                          project.targetSubmissions,
+                          projectData.rewardPool,
+                          projectData.targetSubmissions,
                         )}{" "}
                         SUI
                       </div>
@@ -370,7 +368,7 @@ export default function ProjectDetailPage() {
                         Deadline
                       </div>
                       <div className="font-semibold">
-                        {getDaysRemaining(project.deadline)} days
+                        {getDaysRemaining(projectData.deadline)} days
                       </div>
                     </div>
                   </div>
@@ -384,7 +382,7 @@ export default function ProjectDetailPage() {
                         Approved
                       </div>
                       <div className="font-semibold">
-                        {project.approvedCount} items
+                        {projectData.approvedCount} items
                       </div>
                     </div>
                   </div>
@@ -435,8 +433,8 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
 
-                {project.status === "OPEN" && !isProjectOwner && (
-                  <Link to={`/projects/${project.id}/submit`}>
+                {projectData.status === "OPEN" && !isProjectOwner && (
+                  <Link to={`/projects/${projectData.id}/submit`}>
                     <Button className="w-full" size="lg">
                       <Upload className="mr-2 h-5 w-5" />
                       Submit Data
@@ -444,8 +442,8 @@ export default function ProjectDetailPage() {
                   </Link>
                 )}
 
-                {project.status === "COMPLETED" && (
-                  <Link to={`/marketplace/${project.id}`}>
+                {projectData.status === "COMPLETED" && (
+                  <Link to={`/marketplace/${projectData.id}`}>
                     <Button className="w-full" size="lg">
                       View Dataset
                     </Button>
@@ -457,17 +455,17 @@ export default function ProjectDetailPage() {
                     <Avatar className="h-10 w-10">
                       {/* !TODO */}
                       <AvatarImage src={undefined} />
-                      <AvatarFallback>{project.curator}</AvatarFallback>
+                      <AvatarFallback>{projectData.curator}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Curator
                       </div>
                       {/* !TODO name */}
-                      {/* <div className="font-medium">{project.curator}</div> */}
+                      {/* <div className="font-medium">{projectData.curator}</div> */}
                       <div className="text-xs text-muted-foreground">
                         {/* !TODO address */}
-                        {/* {project.curator} */}
+                        {/* {projectData.curator} */}
                       </div>
                     </div>
                   </div>
