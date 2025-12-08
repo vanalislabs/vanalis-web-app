@@ -47,7 +47,7 @@ export default function MyProjectCard({
 }: MyProjectCardProps) {
   const progress = (approvedCount / targetSubmissions) * 100;
 
-  if (!rewardPool || !deadline) {
+  if(rewardPool === undefined || deadline === null){
     return null;
   }
 

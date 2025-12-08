@@ -336,7 +336,7 @@ export default function ProjectDetailPage() {
                         Total Reward Pool
                       </div>
                       <div className="font-semibold">
-                        {formattedSui(projectData.rewardPool)} SUI
+                        {formattedSui(projectData.totalRewardPool)} SUI
                       </div>
                     </div>
                   </div>
@@ -351,7 +351,7 @@ export default function ProjectDetailPage() {
                       </div>
                       <div className="font-semibold">
                         {formattedSui(
-                          projectData.rewardPool,
+                          projectData.totalRewardPool,
                           projectData.targetSubmissions,
                         )}{" "}
                         SUI
