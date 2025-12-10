@@ -45,7 +45,11 @@ export default function MyProjectCard({
   curator,
   curatorAvatar,
 }: MyProjectCardProps) {
-  const progress = (approvedCount / targetSubmissions) * 100;
+  const numericProgress =
+    typeof targetSubmissions === "number" && targetSubmissions > 0
+      ? Math.max(0, Math.min(100, (approvedCount / targetSubmissions) * 100))
+      : 0;
+  const formattedProgress = numericProgress.toFixed(2);
 
   if(rewardPool === undefined || deadline === null){
     return null;
@@ -76,9 +80,9 @@ export default function MyProjectCard({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{progress}%</span>
+            <span className="font-medium">{formattedProgress}%</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={numericProgress} className="h-2" />
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">

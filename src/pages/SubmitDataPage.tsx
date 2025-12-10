@@ -163,6 +163,7 @@ export default function SubmitDataPage() {
                 label="Preview Dataset *"
                 description="Representative sample data (visible to curator)"
                 accept={projectData.dataType}
+                disabled={isSubmitting}
               />
 
               <FileUploadField
@@ -171,6 +172,7 @@ export default function SubmitDataPage() {
                 label="Full Dataset *"
                 description="Complete data (encrypted & locked until approval)"
                 accept={projectData.dataType}
+                disabled={isSubmitting}
               />
             </CardContent>
           </Card>

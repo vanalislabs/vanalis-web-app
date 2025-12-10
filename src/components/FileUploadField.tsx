@@ -9,6 +9,7 @@ interface FileUploadFieldProps {
   label: string;
   description?: string;
   accept?: string;
+  disabled?: boolean;
 }
 
 // Helper to format bytes to readable string
@@ -25,7 +26,8 @@ export function FileUploadField({
   control, 
   label, 
   description, 
-  accept 
+  accept,
+  disabled = false,
 }: FileUploadFieldProps) {
   const {
     field: { onChange, value },
@@ -33,6 +35,7 @@ export function FileUploadField({
   } = useController({
     name,
     control,
+    disabled,
   });
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -44,6 +47,8 @@ export function FileUploadField({
     e.preventDefault();
     e.stopPropagation();
     
+    if (disabled) return;
+
     // Only take the first file
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onChange(e.dataTransfer.files[0]);
@@ -67,15 +72,19 @@ export function FileUploadField({
       )}
 
       <div
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
+        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors
           ${error 
             ? "border-red-500 bg-red-50" 
-            : "border-border hover:bg-accent/50 hover:border-primary"
+            : "border-border"
+          }
+          ${disabled 
+            ? "opacity-60 cursor-not-allowed bg-muted/20" 
+            : "cursor-pointer hover:bg-accent/50 hover:border-primary"
           }
         `}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        onClick={() => document.getElementById(name)?.click()}
+        onClick={() => !disabled && document.getElementById(name)?.click()}
       >
         <input
           type="file"
@@ -107,6 +116,7 @@ export function FileUploadField({
               variant="outline"
               size="sm"
               className="mt-1 z-10"
+              disabled={disabled}
               onClick={(e) => {
                 e.stopPropagation(); // Prevent triggering the file input click
                 onChange(null);
